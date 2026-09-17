@@ -1,0 +1,13 @@
+# Root-level ignores. backend/ and frontend/ each have their own .gitignore
+# for the framework-specific stuff (vendor, node_modules, build output, .env).
+
+.env
+.env.*.local
+.qodo/
+
+# Source research paper — not part of the shipped software.
+*.docx
+~$*.docx
+
+.DS_Store
+Thumbs.db
