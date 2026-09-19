@@ -24,7 +24,13 @@ class TraineeProfileStoreRequest extends FormRequest
             'sex' => ['required', Rule::in(['Male', 'Female'])],
             'birthdate' => ['nullable', 'date', 'before:today'],
             'contact_number' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:150'],
+            // users.email is unique in the database, so when a login is being
+            // created alongside the profile the email must not already belong
+            // to another account (otherwise the insert fails as a 500).
+            'email' => [
+                'nullable', 'email', 'max:150',
+                ...($this->boolean('create_login') ? [Rule::unique('users', 'email')] : []),
+            ],
             'address_line' => ['nullable', 'string', 'max:255'],
             'barangay' => ['nullable', 'string', 'max:100'],
             'city_municipality' => ['required', 'string', 'max:100'],
@@ -37,6 +43,13 @@ class TraineeProfileStoreRequest extends FormRequest
             'create_login' => ['boolean'],
             'username' => ['required_if:create_login,true', 'nullable', 'string', 'max:50', 'unique:users,username'],
             'password' => ['required_if:create_login,true', 'nullable', 'string', 'min:8'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'This email is already used by another login account. Use a different email, or leave it blank.',
         ];
     }
 }

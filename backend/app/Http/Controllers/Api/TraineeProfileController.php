@@ -90,24 +90,27 @@ class TraineeProfileController extends Controller
     {
         $data = $request->validated();
 
-        $userId = null;
-        if ($request->boolean('create_login')) {
-            $user = User::create([
-                'name' => trim($data['first_name'].' '.$data['last_name']),
-                'username' => $data['username'],
-                'email' => $data['email'] ?? $data['username'].'@ati-caraga.local',
-                'role' => User::ROLE_TRAINEE,
-                'password' => Hash::make($data['password']),
-                'is_active' => true,
-            ]);
-            $userId = $user->id;
-        }
+        // All-or-nothing: never leave a login behind without its profile.
+        $trainee = DB::transaction(function () use ($request, $data) {
+            $userId = null;
+            if ($request->boolean('create_login')) {
+                $user = User::create([
+                    'name' => trim($data['first_name'].' '.$data['last_name']),
+                    'username' => $data['username'],
+                    'email' => $data['email'] ?? $data['username'].'@ati-caraga.local',
+                    'role' => User::ROLE_TRAINEE,
+                    'password' => Hash::make($data['password']),
+                    'is_active' => true,
+                ]);
+                $userId = $user->id;
+            }
 
-        $trainee = TraineeProfile::create([
-            ...collect($data)->except(['create_login', 'username', 'password'])->all(),
-            'user_id' => $userId,
-            'created_by' => $request->user()->id,
-        ]);
+            return TraineeProfile::create([
+                ...collect($data)->except(['create_login', 'username', 'password'])->all(),
+                'user_id' => $userId,
+                'created_by' => $request->user()->id,
+            ]);
+        });
 
         ActivityLog::record($request->user()->id, 'trainee.created', 'TraineeProfile', $trainee->id, "Registered trainee {$trainee->full_name}.");
 
@@ -190,16 +193,26 @@ class TraineeProfileController extends Controller
             'password' => ['required', 'string', 'min:8'],
         ]);
 
-        $user = User::create([
-            'name' => $trainee->full_name,
-            'username' => $validated['username'],
-            'email' => $validated['email'] ?? $trainee->email ?? $validated['username'].'@ati-caraga.local',
-            'role' => User::ROLE_TRAINEE,
-            'password' => Hash::make($validated['password']),
-            'is_active' => true,
-        ]);
+        $email = $validated['email'] ?? $trainee->email ?? $validated['username'].'@ati-caraga.local';
 
-        $trainee->update(['user_id' => $user->id]);
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'message' => 'This email is already used by another login account. Enter a different email for this trainee\'s login.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($trainee, $validated, $email) {
+            $user = User::create([
+                'name' => $trainee->full_name,
+                'username' => $validated['username'],
+                'email' => $email,
+                'role' => User::ROLE_TRAINEE,
+                'password' => Hash::make($validated['password']),
+                'is_active' => true,
+            ]);
+
+            $trainee->update(['user_id' => $user->id]);
+        });
 
         ActivityLog::record($request->user()->id, 'trainee.account_linked', 'TraineeProfile', $trainee->id, "Linked a login account for {$trainee->full_name}.");
 
