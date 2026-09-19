@@ -50,6 +50,20 @@ class RequiredDocumentController extends Controller
 
     public function destroy(Request $request, RequiredDocument $requiredDocument)
     {
+        // Deleting cascades to every document_submissions row for this
+        // document (see its migration), which would silently erase real
+        // Yes/No compliance history across every trainee and training it
+        // was ever tracked on. Once any submission exists, "removing" a
+        // document must go through Deactivate instead — that stops it
+        // appearing on future trainings without touching past records. A
+        // hard delete is only for a document that was never actually used
+        // (e.g. added by mistake).
+        if ($requiredDocument->documentSubmissions()->exists()) {
+            return response()->json([
+                'message' => "\"{$requiredDocument->name}\" already has document records against it and can't be deleted — deactivate it instead to stop it applying to future trainings without losing past compliance history.",
+            ], 422);
+        }
+
         $name = $requiredDocument->name;
         $requiredDocument->delete();
 

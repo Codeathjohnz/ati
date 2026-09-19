@@ -88,6 +88,10 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
+        if ($user->is($request->user())) {
+            return response()->json(['message' => "You can't delete your own account while signed in."], 422);
+        }
+
         $name = $user->name;
         $user->delete();
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usersApi, type UserPayload } from '../../api/users'
 import { extractErrorMessage } from '../../api/client'
+import { useAuth } from '../../context/AuthContext'
 import type { Role, User } from '../../types'
 import {
   Badge,
@@ -34,6 +35,9 @@ export default function AdminUsers() {
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserPayload>(emptyForm)
   const [formError, setFormError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<User | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { user: currentUser } = useAuth()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'users', { page, roleFilter, q }],
@@ -62,6 +66,20 @@ export default function AdminUsers() {
     mutationFn: (u: User) => (u.is_active ? usersApi.deactivate(u.id) : usersApi.activate(u.id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (u: User) => usersApi.remove(u.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      setPendingDelete(null)
+    },
+    onError: (err) => setDeleteError(extractErrorMessage(err, 'Could not delete this account.')),
+  })
+
+  function openDeleteConfirm(u: User) {
+    setDeleteError(null)
+    setPendingDelete(u)
+  }
 
   function openCreate() {
     setEditing(null)
@@ -150,6 +168,11 @@ export default function AdminUsers() {
                           >
                             {u.is_active ? 'Deactivate' : 'Activate'}
                           </Button>
+                          {u.id !== currentUser?.id && (
+                            <Button size="sm" variant="secondary" className="text-red-600" onClick={() => openDeleteConfirm(u)}>
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -166,6 +189,38 @@ export default function AdminUsers() {
           </>
         )}
       </Card>
+
+      <Modal open={pendingDelete !== null} onClose={() => setPendingDelete(null)} title="Delete this account?">
+        {pendingDelete && (
+          <>
+            <p className="text-sm text-slate-600">
+              This permanently deletes the login for <strong>{pendingDelete.name}</strong> ({pendingDelete.username}). They
+              won't be able to sign in again. This can't be undone.
+            </p>
+            {pendingDelete.role === 'trainee' && (
+              <p className="mt-2 text-sm text-slate-500">
+                Their trainee profile, training history and documents are kept — only the login is removed.
+              </p>
+            )}
+            <p className="mt-2 text-sm text-slate-500">
+              To just block access for now, use <span className="font-medium text-slate-700">Deactivate</span> instead.
+            </p>
+            {deleteError && (
+              <div className="mt-3">
+                <ErrorBlock message={deleteError} />
+              </div>
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setPendingDelete(null)} disabled={deleteMutation.isPending}>
+                Cancel
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => deleteMutation.mutate(pendingDelete)} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
 
       <Modal open={modalOpen} onClose={closeModal} title={editing ? 'Edit Account' : 'New Account'}>
         <div className="space-y-4">

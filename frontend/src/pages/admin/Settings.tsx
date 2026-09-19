@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../../api/admin'
 import { extractErrorMessage } from '../../api/client'
-import { Badge, Button, Card, CardHeader, ErrorBlock, Field, Input, LoadingBlock } from '../../components/ui'
+import { Badge, Button, Card, CardHeader, ErrorBlock, Field, Input, LoadingBlock, Modal } from '../../components/ui'
+import type { RequiredDocument } from '../../types'
 
 const SETTING_FIELDS: Array<{ key: string; label: string; placeholder: string }> = [
   { key: 'current_academic_term', label: 'Current Academic/Training Term', placeholder: 'e.g. CY 2026' },
@@ -70,6 +71,8 @@ function RequiredDocumentsPanel() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['admin', 'required-documents'], queryFn: adminApi.requiredDocuments })
   const [newDoc, setNewDoc] = useState({ code: '', name: '' })
+  const [pendingDelete, setPendingDelete] = useState<RequiredDocument | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const createMutation = useMutation({
     mutationFn: adminApi.createRequiredDocument,
@@ -89,6 +92,21 @@ function RequiredDocumentsPanel() {
     },
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: adminApi.removeRequiredDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'required-documents'] })
+      queryClient.invalidateQueries({ queryKey: ['meta'] })
+      setPendingDelete(null)
+    },
+    onError: (err) => setDeleteError(extractErrorMessage(err, 'Could not delete this document.')),
+  })
+
+  function openDeleteConfirm(doc: RequiredDocument) {
+    setDeleteError(null)
+    setPendingDelete(doc)
+  }
+
   return (
     <Card>
       <CardHeader title="Required Post-Training Documents" subtitle="Tracked as Yes/No per trainee per training attended." />
@@ -105,6 +123,9 @@ function RequiredDocumentsPanel() {
                 <Badge tone={doc.is_active ? 'green' : 'slate'}>{doc.is_active ? 'Active' : 'Inactive'}</Badge>
                 <Button size="sm" variant="secondary" onClick={() => toggleMutation.mutate(doc)}>
                   {doc.is_active ? 'Deactivate' : 'Activate'}
+                </Button>
+                <Button size="sm" variant="danger" onClick={() => openDeleteConfirm(doc)}>
+                  Delete
                 </Button>
               </div>
             </div>
@@ -125,6 +146,41 @@ function RequiredDocumentsPanel() {
           Add Document
         </Button>
       </div>
+
+      <Modal open={pendingDelete !== null} onClose={() => setPendingDelete(null)} title="Delete required document?">
+        {pendingDelete && (
+          <>
+            <p className="text-sm text-slate-600">
+              This permanently removes <strong>{pendingDelete.name}</strong> ({pendingDelete.code}). This can't be
+              undone.
+            </p>
+            {deleteError ? (
+              <div className="mt-3">
+                <ErrorBlock message={deleteError} />
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-slate-500">
+                If it already has Yes/No records against any trainee, deletion will be refused — use{' '}
+                <span className="font-medium text-slate-700">Deactivate</span> instead in that case, which keeps
+                past compliance history intact and only stops it applying to future trainings.
+              </p>
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setPendingDelete(null)} disabled={deleteMutation.isPending}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => deleteMutation.mutate(pendingDelete.id)}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </Card>
   )
 }
