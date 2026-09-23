@@ -47,4 +47,9 @@ class TrainingProgram extends Model
     {
         return $this->hasMany(TrainingConfirmation::class);
     }
+
+    public function tests(): HasMany
+    {
+        return $this->hasMany(TrainingProgramTest::class);
+    }
 }

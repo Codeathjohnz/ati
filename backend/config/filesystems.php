@@ -44,6 +44,15 @@ return [
             'throw' => false,
         ],
 
+        // Private disk for trainee-uploaded documents (required-document
+        // attachments, test hardcopy photos). Never made public / symlinked —
+        // access always goes through an authenticated download endpoint.
+        'trainee_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/trainee-documents'),
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

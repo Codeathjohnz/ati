@@ -84,12 +84,18 @@ export interface RequiredDocument {
   sort_order?: number
 }
 
+export type ReviewStatus = 'pending' | 'approved' | 'needs_revision'
+
 export interface DocumentStatusEntry {
   required_document_id: number
   code: string
   name: string
   submitted: boolean
   date_submitted: string | null
+  review_status: ReviewStatus
+  remarks: string | null
+  has_attachment: boolean
+  attachment_name: string | null
 }
 
 export interface TrainingComplianceEntry {
@@ -98,12 +104,12 @@ export interface TrainingComplianceEntry {
   training_program_name?: string
   date_attended?: string
   documents: DocumentStatusEntry[]
-  overall_status: 'Passed' | 'Failed'
+  overall_status: 'Passed' | 'Incomplete'
 }
 
 export interface DocumentComplianceSummary {
   per_training: TrainingComplianceEntry[]
-  overall_status: 'Passed' | 'Failed' | 'No Records'
+  overall_status: 'Passed' | 'Incomplete' | 'No Records'
 }
 
 export interface ChainLevelGap {
@@ -197,4 +203,45 @@ export interface DashboardStats {
   recent_trainees: Array<{ id: number; first_name: string; last_name: string; created_at: string }>
   competency_gap_coverage: Array<{ chain_level: ChainLevel; completed: number; gap: number }>
   attendance_trend: Array<{ month: string; total: number }>
+  trainees_by_province: Record<string, number>
+  province_completion_ranking: Array<{
+    province: string
+    total_trainees: number
+    completed_trainees: number
+    completion_rate: number
+  }>
+}
+
+export type TestType = 'pre_test' | 'post_test'
+
+export type QuestionType = 'multiple_choice' | 'fill_blank'
+
+export interface TestQuestion {
+  id?: number
+  type: QuestionType
+  question_text: string
+  options: string[] | null
+  correct_answer?: string
+  points: number
+  sort_order?: number
+}
+
+export interface TrainingProgramTest {
+  id: number
+  training_program_id: number
+  type: TestType
+  title: string
+  instructions: string | null
+  passing_score: number
+  questions: TestQuestion[]
+}
+
+export interface TestAttemptResult {
+  id: number
+  raw_score: number
+  max_score: number
+  percentage: number
+  passed: boolean
+  attempted_at: string
+  answers: Record<string, string>
 }

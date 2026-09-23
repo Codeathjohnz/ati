@@ -10,8 +10,16 @@ use App\Models\TrainingHistory;
 /**
  * Implements the Document Status Computation Algorithm described in Chapter 3
  * (Algorithm Design): for each active required document, determine Yes/No
- * submission status, and compute an overall Passed/Failed compliance status
- * based on the completeness of all required submissions (see Table 6.0).
+ * submission status, and compute an overall Passed/Incomplete compliance
+ * status based on the completeness of all required submissions (see Table
+ * 6.0 — the paper's own term "Failed" is surfaced to users as "Incomplete"
+ * per client request, since it reads as a judgment on the trainee rather
+ * than a neutral "still in progress" state; the underlying rule is
+ * unchanged).
+ *
+ * A document only counts toward "Passed" once an officer has approved it
+ * (`review_status === 'approved'`) — a trainee's own upload, or an
+ * unreviewed submission, is not enough on its own.
  */
 class DocumentComplianceService
 {
@@ -41,12 +49,16 @@ class DocumentComplianceService
                 'name' => $doc->name,
                 'submitted' => (bool) ($submission?->submitted ?? false),
                 'date_submitted' => $submission?->date_submitted?->toDateString(),
+                'review_status' => $submission?->review_status ?? DocumentSubmission::REVIEW_PENDING,
+                'remarks' => $submission?->remarks,
+                'has_attachment' => (bool) $submission?->attachment_path,
+                'attachment_name' => $submission?->attachment_original_name,
             ];
         })->values();
 
-        $overallStatus = $documents->every(fn ($d) => $d['submitted'] === true) && $requiredDocuments->isNotEmpty()
+        $overallStatus = $documents->every(fn ($d) => $d['review_status'] === DocumentSubmission::REVIEW_APPROVED) && $requiredDocuments->isNotEmpty()
             ? 'Passed'
-            : 'Failed';
+            : 'Incomplete';
 
         return [
             'training_history_id' => $history->id,
@@ -81,7 +93,7 @@ class DocumentComplianceService
             return $evaluation;
         });
 
-        $overallStatus = $perTraining->every(fn ($e) => $e['overall_status'] === 'Passed') ? 'Passed' : 'Failed';
+        $overallStatus = $perTraining->every(fn ($e) => $e['overall_status'] === 'Passed') ? 'Passed' : 'Incomplete';
 
         return [
             'per_training' => $perTraining->values()->all(),

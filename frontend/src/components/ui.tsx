@@ -171,8 +171,20 @@ export function YesNoBadge({ value }: { value: boolean }) {
   return <Badge tone={value ? 'green' : 'red'}>{value ? 'Yes' : 'No'}</Badge>
 }
 
-export function ComplianceBadge({ status }: { status: 'Passed' | 'Failed' | 'No Records' }) {
-  return <Badge tone={status === 'Passed' ? 'green' : status === 'Failed' ? 'red' : 'slate'}>{status}</Badge>
+export function ComplianceBadge({ status }: { status: 'Passed' | 'Incomplete' | 'No Records' }) {
+  return <Badge tone={status === 'Passed' ? 'green' : status === 'Incomplete' ? 'amber' : 'slate'}>{status}</Badge>
+}
+
+const reviewStatusLabels: Record<'pending' | 'approved' | 'needs_revision', string> = {
+  pending: 'Pending Review',
+  approved: 'Approved',
+  needs_revision: 'Needs Revision',
+}
+
+export function ReviewStatusBadge({ submitted, status }: { submitted: boolean; status: 'pending' | 'approved' | 'needs_revision' }) {
+  if (!submitted) return <Badge tone="slate">Not Submitted</Badge>
+  const tone = status === 'approved' ? 'green' : status === 'needs_revision' ? 'red' : 'amber'
+  return <Badge tone={tone}>{reviewStatusLabels[status]}</Badge>
 }
 
 export function ChainLevelStatusBadge({ completed }: { completed: boolean }) {

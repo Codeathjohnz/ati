@@ -25,7 +25,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    // So the frontend can read the real filename off an authenticated file
+    // download response (Storage::download() sets Content-Disposition).
+    'exposed_headers' => ['Content-Disposition'],
 
     'max_age' => 0,
 

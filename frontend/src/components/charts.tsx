@@ -115,8 +115,20 @@ export function AttendanceTrendChart({ data }: { data: Array<{ month: string; to
 }
 
 /** A single-series horizontal bar list — used for volume-only comparisons across a few categories. */
-export function CategoryBarList({ items, color }: { items: Array<{ label: string; value: number; color?: string }>; color?: string }) {
-  const max = Math.max(...items.map((i) => i.value), 1)
+export function CategoryBarList({
+  items,
+  color,
+  formatValue,
+  maxValue,
+}: {
+  items: Array<{ label: string; value: number; color?: string }>
+  color?: string
+  /** Customizes the value label (e.g. append "%") without changing bar-width math, which always stays raw-number-proportional. */
+  formatValue?: (value: number) => string
+  /** Fixes the bar-width scale (e.g. 100 for a percentage series) instead of scaling to the largest value present. */
+  maxValue?: number
+}) {
+  const max = maxValue ?? Math.max(...items.map((i) => i.value), 1)
 
   if (items.length === 0) {
     return <p className="px-5 py-8 text-center text-sm text-slate-400">No data yet.</p>
@@ -128,7 +140,7 @@ export function CategoryBarList({ items, color }: { items: Array<{ label: string
         <div key={item.label}>
           <div className="mb-1 flex items-center justify-between text-xs">
             <span className="capitalize text-slate-600">{item.label.replace('_', ' ')}</span>
-            <span className="font-semibold text-slate-900">{item.value}</span>
+            <span className="font-semibold text-slate-900">{formatValue ? formatValue(item.value) : item.value}</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <div

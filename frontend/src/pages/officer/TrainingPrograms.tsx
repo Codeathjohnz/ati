@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { trainingProgramsApi, type TrainingProgramPayload } from '../../api/trainingPrograms'
+import { trainingProgramTestsApi } from '../../api/tests'
 import { metaApi } from '../../api/meta'
 import { extractErrorMessage } from '../../api/client'
-import type { TrainingProgram } from '../../types'
+import type { TestQuestion, TestType, TrainingProgram } from '../../types'
 import { Badge, Button, Card, ErrorBlock, Field, Input, LoadingBlock, Modal, Pagination, Select, Textarea } from '../../components/ui'
 
 const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_level: 'Production', venue: '', start_date: '', end_date: '', status: 'upcoming' }
@@ -22,6 +23,7 @@ export default function TrainingPrograms() {
   const [editing, setEditing] = useState<TrainingProgram | null>(null)
   const [form, setForm] = useState<TrainingProgramPayload>(emptyForm)
   const [error, setError] = useState<string | null>(null)
+  const [testsProgram, setTestsProgram] = useState<TrainingProgram | null>(null)
 
   const { data: meta } = useQuery({ queryKey: ['meta'], queryFn: metaApi.get })
   const { data, isLoading } = useQuery({
@@ -104,6 +106,7 @@ export default function TrainingPrograms() {
                       <td className="px-5 py-3"><Badge tone={statusTone[p.status]}>{p.status}</Badge></td>
                       <td className="px-5 py-3 text-right">
                         <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="secondary" onClick={() => setTestsProgram(p)}>Tests</Button>
                           <Button size="sm" variant="secondary" onClick={() => openEdit(p)}>Edit</Button>
                           <Button
                             size="sm"
@@ -172,6 +175,237 @@ export default function TrainingPrograms() {
           </Button>
         </div>
       </Modal>
+
+      <Modal
+        open={testsProgram !== null}
+        onClose={() => setTestsProgram(null)}
+        title={testsProgram ? `Tests — ${testsProgram.name}` : 'Tests'}
+        wide
+      >
+        {testsProgram && <TestsManager trainingProgramId={testsProgram.id} />}
+      </Modal>
+    </div>
+  )
+}
+
+const emptyQuestion = (): TestQuestion => ({ type: 'multiple_choice', question_text: '', options: ['', ''], correct_answer: '', points: 1 })
+
+function TestsManager({ trainingProgramId }: { trainingProgramId: number }) {
+  const [activeType, setActiveType] = useState<TestType>('pre_test')
+
+  return (
+    <div>
+      <div className="mb-4 flex gap-2 border-b border-slate-200">
+        {(['pre_test', 'post_test'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveType(t)}
+            className={`border-b-2 px-3 py-2 text-sm font-medium ${
+              activeType === t ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {t === 'pre_test' ? 'Pre-Test' : 'Post-Test'}
+          </button>
+        ))}
+      </div>
+      <TestEditor key={activeType} trainingProgramId={trainingProgramId} type={activeType} />
+    </div>
+  )
+}
+
+function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; type: TestType }) {
+  const queryClient = useQueryClient()
+  const { data, isLoading } = useQuery({
+    queryKey: ['training-programs', trainingProgramId, 'tests', type],
+    queryFn: () => trainingProgramTestsApi.show(trainingProgramId, type),
+  })
+
+  const [title, setTitle] = useState('')
+  const [instructions, setInstructions] = useState('')
+  const [passingScore, setPassingScore] = useState(70)
+  const [questions, setQuestions] = useState<TestQuestion[]>([emptyQuestion()])
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (data?.exists && data.test) {
+      setTitle(data.test.title)
+      setInstructions(data.test.instructions ?? '')
+      setPassingScore(data.test.passing_score)
+      setQuestions(data.test.questions.length > 0 ? data.test.questions : [emptyQuestion()])
+    } else if (data && !data.exists) {
+      setTitle('')
+      setInstructions('')
+      setPassingScore(70)
+      setQuestions([emptyQuestion()])
+    }
+  }, [data])
+
+  const saveMutation = useMutation({
+    mutationFn: () => trainingProgramTestsApi.upsert(trainingProgramId, type, { title, instructions, passing_score: passingScore, questions }),
+    onSuccess: () => {
+      setError(null)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      queryClient.invalidateQueries({ queryKey: ['training-programs', trainingProgramId, 'tests', type] })
+    },
+    onError: (err) => setError(extractErrorMessage(err)),
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: () => trainingProgramTestsApi.remove(trainingProgramId, type),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['training-programs', trainingProgramId, 'tests', type] }),
+  })
+
+  function updateQuestion(i: number, patch: Partial<TestQuestion>) {
+    setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)))
+  }
+
+  function updateOption(qi: number, oi: number, value: string) {
+    setQuestions((qs) =>
+      qs.map((q, idx) => (idx === qi ? { ...q, options: (q.options ?? []).map((o, j) => (j === oi ? value : o)) } : q)),
+    )
+  }
+
+  if (isLoading) return <LoadingBlock />
+
+  const isValid = title.trim() !== '' && questions.every((q) => q.question_text.trim() !== '' && (q.correct_answer ?? '').trim() !== '')
+
+  return (
+    <div className="space-y-4">
+      {error && <ErrorBlock message={error} />}
+      <Field label="Test Title">
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Production Basics Pre-Test" />
+      </Field>
+      <Field label="Instructions (optional)">
+        <Textarea rows={2} value={instructions} onChange={(e) => setInstructions(e.target.value)} />
+      </Field>
+      <Field label="Passing Score (%)">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={passingScore}
+          onChange={(e) => setPassingScore(Number(e.target.value))}
+          className="w-28"
+        />
+      </Field>
+
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-slate-700">Questions</p>
+        {questions.map((q, i) => (
+          <Card key={i} className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 space-y-3">
+                <div className="flex gap-3">
+                  <Select
+                    className="w-48"
+                    value={q.type}
+                    onChange={(e) =>
+                      updateQuestion(i, {
+                        type: e.target.value as TestQuestion['type'],
+                        options: e.target.value === 'multiple_choice' ? ['', ''] : null,
+                        correct_answer: '',
+                      })
+                    }
+                  >
+                    <option value="multiple_choice">Multiple Choice</option>
+                    <option value="fill_blank">Fill in the Blank</option>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={q.points}
+                    onChange={(e) => updateQuestion(i, { points: Number(e.target.value) })}
+                    className="w-20"
+                    title="Points"
+                  />
+                </div>
+                <Textarea
+                  rows={2}
+                  placeholder="Question text"
+                  value={q.question_text}
+                  onChange={(e) => updateQuestion(i, { question_text: e.target.value })}
+                />
+                {q.type === 'multiple_choice' ? (
+                  <div className="space-y-2">
+                    {(q.options ?? []).map((opt, oi) => (
+                      <div key={oi} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name={`correct-${i}`}
+                          checked={q.correct_answer === opt && opt !== ''}
+                          onChange={() => updateQuestion(i, { correct_answer: opt })}
+                          title="Mark as correct answer"
+                        />
+                        <Input
+                          value={opt}
+                          onChange={(e) => {
+                            updateOption(i, oi, e.target.value)
+                            if (q.correct_answer === opt) updateQuestion(i, { correct_answer: e.target.value })
+                          }}
+                          placeholder={`Option ${oi + 1}`}
+                          className="flex-1"
+                        />
+                        {(q.options?.length ?? 0) > 2 && (
+                          <button
+                            type="button"
+                            className="text-xs text-red-600"
+                            onClick={() => updateQuestion(i, { options: (q.options ?? []).filter((_, j) => j !== oi) })}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <Button size="sm" variant="ghost" onClick={() => updateQuestion(i, { options: [...(q.options ?? []), ''] })}>
+                      + Add Option
+                    </Button>
+                    <p className="text-xs text-slate-400">Select the radio button next to the correct option.</p>
+                  </div>
+                ) : (
+                  <Field label="Correct Answer">
+                    <Input value={q.correct_answer} onChange={(e) => updateQuestion(i, { correct_answer: e.target.value })} />
+                  </Field>
+                )}
+              </div>
+              <button
+                type="button"
+                className="text-xs text-red-600 disabled:text-slate-300"
+                disabled={questions.length <= 1}
+                onClick={() => setQuestions((qs) => qs.filter((_, idx) => idx !== i))}
+              >
+                Remove question
+              </button>
+            </div>
+          </Card>
+        ))}
+        <Button size="sm" variant="secondary" onClick={() => setQuestions((qs) => [...qs, emptyQuestion()])}>
+          + Add Question
+        </Button>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+        <div className="flex items-center gap-2">
+          <Button onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending}>
+            {saveMutation.isPending ? 'Saving…' : 'Save Test'}
+          </Button>
+          {saved && <Badge tone="green">Saved</Badge>}
+        </div>
+        {data?.exists && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              if (confirm('Remove this test? Trainees will no longer be able to take it — the document will fall back to a plain upload.')) {
+                removeMutation.mutate()
+              }
+            }}
+          >
+            Remove Test
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

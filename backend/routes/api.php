@@ -12,9 +12,11 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RequiredDocumentController;
 use App\Http\Controllers\Api\TraineeProfileController;
 use App\Http\Controllers\Api\TraineeSelfController;
+use App\Http\Controllers\Api\TraineeTestController;
 use App\Http\Controllers\Api\TrainingConfirmationController;
 use App\Http\Controllers\Api\TrainingHistoryController;
 use App\Http\Controllers\Api\TrainingProgramController;
+use App\Http\Controllers\Api\TrainingProgramTestController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -61,6 +63,11 @@ Route::prefix('v1')->group(function () {
             Route::get('trainees/{trainee}/documents', [DocumentSubmissionController::class, 'forTrainee']);
             Route::get('training-history/{trainingHistory}/documents', [DocumentSubmissionController::class, 'forTrainingHistory']);
             Route::put('training-history/{trainingHistory}/documents/{requiredDocumentId}', [DocumentSubmissionController::class, 'update']);
+            Route::get('training-history/{trainingHistory}/documents/{requiredDocumentId}/download', [DocumentSubmissionController::class, 'download']);
+
+            Route::get('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'show']);
+            Route::put('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'upsert']);
+            Route::delete('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'destroy']);
 
             Route::get('trainees/{trainee}/competency-gaps', [CompetencyGapController::class, 'forTrainee']);
             Route::get('competency-gaps', [CompetencyGapController::class, 'index']);
@@ -86,6 +93,12 @@ Route::prefix('v1')->group(function () {
             Route::get('me/confirmations', [TraineeSelfController::class, 'confirmations']);
             Route::post('me/confirmations/{confirmation}/respond', [TrainingConfirmationController::class, 'respond']);
             Route::get('me/activity-history', [TraineeSelfController::class, 'activityHistory']);
+
+            Route::post('me/training-history/{trainingHistory}/documents/{requiredDocumentId}/upload', [DocumentSubmissionController::class, 'uploadAsTrainee']);
+            Route::get('me/training-history/{trainingHistory}/documents/{requiredDocumentId}/download', [DocumentSubmissionController::class, 'download']);
+
+            Route::get('me/training-history/{trainingHistory}/tests/{type}', [TraineeTestController::class, 'show']);
+            Route::post('me/training-history/{trainingHistory}/tests/{type}/attempt', [TraineeTestController::class, 'attempt']);
         });
     });
 });

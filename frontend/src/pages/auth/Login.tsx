@@ -104,7 +104,7 @@ export default function Login() {
         {/* content */}
         <div className="relative z-10 flex items-center gap-3 anim-fade-up" style={{ animationDelay: '0.05s' }}>
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-base font-bold backdrop-blur-sm ring-1 ring-white/20">
-            AT
+            DT
           </div>
           <div>
             <p className="text-sm font-semibold leading-tight tracking-wide">ATI-CARAGA</p>
@@ -156,9 +156,9 @@ export default function Login() {
         <div className="w-full max-w-sm anim-fade-up" style={{ animationDelay: '0.1s' }}>
           <div className="mb-7 flex flex-col items-center text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white shadow-sm shadow-brand-600/30">
-              AT
+              DT
             </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">ATI-Caraga System</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Digital Trainee Tracker</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
               Welcome Back
             </h2>

@@ -80,6 +80,37 @@ class DashboardController extends Controller
             ];
         })->values();
 
+        $traineesByProvince = TraineeProfile::selectRaw('province, COUNT(*) as total')
+            ->groupBy('province')
+            ->pluck('total', 'province');
+
+        // Per province: how many trainees have a training_history row for
+        // all 5 chain levels — the same "no gaps" rule as
+        // CompetencyGapAnalysisService::summarize(), aggregated per province
+        // instead of per trainee. The correlated subquery is plain SQL (no
+        // DATE_FORMAT-style portability trap), so it runs the same on MySQL
+        // in production and SQLite in the test suite.
+        $chainLevelCount = count(TrainingProgram::CHAIN_LEVELS);
+        $provinceCompletionRanking = TraineeProfile::query()
+            ->select('province')
+            ->selectRaw('COUNT(*) as total_trainees')
+            ->selectRaw(
+                'SUM(CASE WHEN (SELECT COUNT(DISTINCT th.chain_level) FROM training_history th WHERE th.trainee_id = trainee_profiles.id) = ? THEN 1 ELSE 0 END) as completed_trainees',
+                [$chainLevelCount]
+            )
+            ->groupBy('province')
+            ->get()
+            ->map(fn ($row) => [
+                'province' => $row->province,
+                'total_trainees' => (int) $row->total_trainees,
+                'completed_trainees' => (int) $row->completed_trainees,
+                'completion_rate' => $row->total_trainees > 0
+                    ? round(($row->completed_trainees / $row->total_trainees) * 100, 1)
+                    : 0,
+            ])
+            ->sortByDesc('completion_rate')
+            ->values();
+
         return response()->json([
             'total_trainees' => $totalTrainees,
             'total_training_programs' => $totalPrograms,
@@ -96,6 +127,8 @@ class DashboardController extends Controller
             'recent_trainees' => $recentTrainees,
             'competency_gap_coverage' => $competencyGapCoverage,
             'attendance_trend' => $attendanceTrend,
+            'trainees_by_province' => $traineesByProvince,
+            'province_completion_ranking' => $provinceCompletionRanking,
         ]);
     }
 }

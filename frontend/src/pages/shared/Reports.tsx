@@ -4,7 +4,7 @@ import { Button, Card, CardHeader } from '../../components/ui'
 
 const REPORTS: Array<{ key: keyof typeof reportsApi; title: string; description: string }> = [
   { key: 'attendance', title: 'Training Attendance Report', description: 'Every trainee attendance record with chain level and date.' },
-  { key: 'documentCompliance', title: 'Document Compliance Report', description: 'Overall Passed/Failed status per trainee across all trainings.' },
+  { key: 'documentCompliance', title: 'Document Compliance Report', description: 'Overall Passed/Incomplete status per trainee across all trainings.' },
   { key: 'competencyGaps', title: 'Competency Gap Report', description: 'Incomplete chain levels per trainee for follow-up planning.' },
   { key: 'demographics', title: 'Trainee Demographics Report', description: 'Sex, age, location, income class, and education breakdown.' },
 ]

@@ -1,0 +1,113 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\DocumentSubmission;
+use App\Models\RequiredDocument;
+use App\Models\TraineeProfile;
+use App\Models\TrainingHistory;
+use App\Models\TrainingProgram;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class TrainingProgramTestFlowTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function questionPayload(): array
+    {
+        return [
+            'title' => 'Production Basics Pre-Test',
+            'instructions' => 'Answer all items.',
+            'passing_score' => 70,
+            'questions' => [
+                ['type' => 'multiple_choice', 'question_text' => 'Best soil pH for rice?', 'options' => ['5.5-6.5', '9-10'], 'correct_answer' => '5.5-6.5', 'points' => 1],
+                ['type' => 'fill_blank', 'question_text' => 'Fill in: ___ increases yield.', 'correct_answer' => 'Fertilizer', 'points' => 1],
+            ],
+        ];
+    }
+
+    public function test_an_officer_can_build_a_pre_test_with_an_answer_key(): void
+    {
+        $officer = User::factory()->projectOfficer()->create();
+        $program = TrainingProgram::factory()->create();
+
+        $response = $this->actingAs($officer, 'sanctum')
+            ->putJson("/api/v1/training-programs/{$program->id}/tests/pre_test", $this->questionPayload());
+
+        $response->assertOk();
+        $this->assertDatabaseHas('training_program_tests', ['training_program_id' => $program->id, 'type' => 'pre_test']);
+        $this->assertDatabaseCount('test_questions', 2);
+    }
+
+    public function test_a_trainee_never_receives_the_answer_key(): void
+    {
+        $officer = User::factory()->projectOfficer()->create();
+        $program = TrainingProgram::factory()->create();
+        $this->actingAs($officer, 'sanctum')->putJson("/api/v1/training-programs/{$program->id}/tests/pre_test", $this->questionPayload());
+
+        $traineeUser = User::factory()->trainee()->create();
+        $trainee = TraineeProfile::factory()->create(['user_id' => $traineeUser->id]);
+        $history = TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'training_program_id' => $program->id]);
+
+        $response = $this->actingAs($traineeUser, 'sanctum')->getJson("/api/v1/trainee/me/training-history/{$history->id}/tests/pre_test");
+
+        $response->assertOk();
+        $body = $response->json();
+        $this->assertTrue($body['exists']);
+        foreach ($body['test']['questions'] as $question) {
+            $this->assertArrayNotHasKey('correct_answer', $question);
+        }
+    }
+
+    public function test_passing_a_test_approves_the_matching_document_and_failing_flags_it_for_revision(): void
+    {
+        RequiredDocument::create(['code' => 'pre_test', 'name' => 'Pre-Test', 'is_active' => true]);
+        $officer = User::factory()->projectOfficer()->create();
+        $program = TrainingProgram::factory()->create();
+        $this->actingAs($officer, 'sanctum')->putJson("/api/v1/training-programs/{$program->id}/tests/pre_test", $this->questionPayload());
+        $test = $program->tests()->where('type', 'pre_test')->with('questions')->first();
+        $questions = $test->questions->keyBy('question_text');
+
+        $traineeUser = User::factory()->trainee()->create();
+        $trainee = TraineeProfile::factory()->create(['user_id' => $traineeUser->id]);
+        $history = TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'training_program_id' => $program->id]);
+
+        // Fail first: both answers wrong.
+        $this->actingAs($traineeUser, 'sanctum')->postJson(
+            "/api/v1/trainee/me/training-history/{$history->id}/tests/pre_test/attempt",
+            ['answers' => [$questions['Best soil pH for rice?']->id => '9-10', $questions['Fill in: ___ increases yield.']->id => 'wrong']]
+        )->assertOk();
+
+        $submission = DocumentSubmission::where('trainee_id', $trainee->id)->first();
+        $this->assertSame('needs_revision', $submission->review_status);
+
+        // Retake and pass: both answers correct — latest attempt wins.
+        $this->actingAs($traineeUser, 'sanctum')->postJson(
+            "/api/v1/trainee/me/training-history/{$history->id}/tests/pre_test/attempt",
+            ['answers' => [$questions['Best soil pH for rice?']->id => '5.5-6.5', $questions['Fill in: ___ increases yield.']->id => 'Fertilizer']]
+        )->assertOk();
+
+        $this->assertSame('approved', $submission->fresh()->review_status);
+        $this->assertDatabaseCount('trainee_test_attempts', 2);
+    }
+
+    public function test_a_trainee_cannot_take_a_test_for_someone_elses_training_history(): void
+    {
+        $officer = User::factory()->projectOfficer()->create();
+        $program = TrainingProgram::factory()->create();
+        $this->actingAs($officer, 'sanctum')->putJson("/api/v1/training-programs/{$program->id}/tests/pre_test", $this->questionPayload());
+
+        $ownerUser = User::factory()->trainee()->create();
+        $owner = TraineeProfile::factory()->create(['user_id' => $ownerUser->id]);
+        $history = TrainingHistory::factory()->create(['trainee_id' => $owner->id, 'training_program_id' => $program->id]);
+
+        $intruderUser = User::factory()->trainee()->create();
+        TraineeProfile::factory()->create(['user_id' => $intruderUser->id]);
+
+        $this->actingAs($intruderUser, 'sanctum')
+            ->postJson("/api/v1/trainee/me/training-history/{$history->id}/tests/pre_test/attempt", ['answers' => []])
+            ->assertStatus(403);
+    }
+}

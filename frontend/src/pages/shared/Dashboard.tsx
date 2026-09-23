@@ -37,6 +37,17 @@ export default function Dashboard({ title = 'Dashboard' }: { title?: string }) {
     color: sexColor[label] ?? categorical.blue,
   }))
 
+  // Sorted by headcount so the busiest province reads first, not alphabetically.
+  const provinceVolume = Object.entries(data.trainees_by_province)
+    .sort(([, a], [, b]) => b - a)
+    .map(([label, value]) => ({ label, value, color: categorical.blue }))
+
+  const provinceRanking = data.province_completion_ranking.map((row) => ({
+    label: row.province,
+    value: row.completion_rate,
+    color: status.good,
+  }))
+
   return (
     <div className="space-y-6">
       <div>
@@ -103,6 +114,21 @@ export default function Dashboard({ title = 'Dashboard' }: { title?: string }) {
         <Card>
           <CardHeader title="Trainee Demographics — Sex" />
           <ProportionBar segments={sexSegments} />
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader title="Trainees by Province" subtitle="Headcount across the five Caraga provinces." />
+          <CategoryBarList items={provinceVolume} />
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Province Completion Ranking"
+            subtitle="Share of trainees in each province who've completed all 5 chain levels."
+          />
+          <CategoryBarList items={provinceRanking} maxValue={100} formatValue={(v) => `${v}%`} />
         </Card>
       </div>
 

@@ -22,9 +22,9 @@ import {
   LoadingBlock,
   Modal,
   PasswordInput,
+  ReviewStatusBadge,
   Select,
   Textarea,
-  YesNoBadge,
 } from '../../components/ui'
 
 const TABS = ['Overview', 'Training History', 'Documents', 'Competency Gaps', 'Activity History'] as const
@@ -277,9 +277,14 @@ function DocumentsTab({ traineeId }: { traineeId: number }) {
     queryFn: () => documentsApi.forTrainee(traineeId),
   })
 
-  const toggleMutation = useMutation({
-    mutationFn: ({ historyId, docId, submitted }: { historyId: number; docId: number; submitted: boolean }) =>
-      documentsApi.update(historyId, docId, submitted),
+  const reviewMutation = useMutation({
+    mutationFn: ({ historyId, docId, status }: { historyId: number; docId: number; status: 'approved' | 'needs_revision' }) =>
+      documentsApi.review(historyId, docId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainees', traineeId] }),
+  })
+
+  const markSubmittedMutation = useMutation({
+    mutationFn: ({ historyId, docId }: { historyId: number; docId: number }) => documentsApi.update(historyId, docId, true),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trainees', traineeId] }),
   })
 
@@ -303,19 +308,51 @@ function DocumentsTab({ traineeId }: { traineeId: number }) {
           />
           <div className="divide-y divide-slate-100">
             {entry.documents.map((doc) => (
-              <div key={doc.required_document_id} className="flex items-center justify-between px-5 py-3 text-sm">
-                <span className="text-slate-700">{doc.name}</span>
-                <div className="flex items-center gap-3">
-                  <YesNoBadge value={doc.submitted} />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() =>
-                      toggleMutation.mutate({ historyId: entry.training_history_id, docId: doc.required_document_id, submitted: !doc.submitted })
-                    }
-                  >
-                    Mark {doc.submitted ? 'Not Submitted' : 'Submitted'}
-                  </Button>
+              <div key={doc.required_document_id} className="px-5 py-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-slate-700">{doc.name}</span>
+                    {doc.remarks && <p className="mt-0.5 text-xs text-slate-400">{doc.remarks}</p>}
+                  </div>
+                  <ReviewStatusBadge submitted={doc.submitted} status={doc.review_status} />
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {doc.has_attachment && (
+                    <Button size="sm" variant="ghost" onClick={() => documentsApi.download(entry.training_history_id, doc.required_document_id)}>
+                      View Upload
+                    </Button>
+                  )}
+                  {doc.submitted && doc.review_status !== 'approved' && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        reviewMutation.mutate({ historyId: entry.training_history_id, docId: doc.required_document_id, status: 'approved' })
+                      }
+                    >
+                      Approve
+                    </Button>
+                  )}
+                  {doc.submitted && doc.review_status !== 'needs_revision' && (
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() =>
+                        reviewMutation.mutate({ historyId: entry.training_history_id, docId: doc.required_document_id, status: 'needs_revision' })
+                      }
+                    >
+                      Needs Revision
+                    </Button>
+                  )}
+                  {!doc.submitted && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => markSubmittedMutation.mutate({ historyId: entry.training_history_id, docId: doc.required_document_id })}
+                    >
+                      Mark Submitted
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

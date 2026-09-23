@@ -1,4 +1,4 @@
-# ATI-Caraga System
+# Digital Trainee Tracker
 
 Web-Based Trainee Profiling, Document Status Tracking, and Competency Gap
 Analysis System for the Agricultural Training Institute (ATI-Caraga).
@@ -114,8 +114,8 @@ ati/
 
 - **Comprehensive Trainee Profiling** — full CRUD with demographic fields
 - **Training History Records** — per-trainee attendance tied to chain levels
-- **Document Status Tracking** — Yes/No per required document, automatic
-  Passed/Failed overall status
+- **Document Status Tracking** — trainee upload + officer review per
+  required document, automatic Passed/Incomplete overall status
 - **Competency Gap Analysis** — automatic comparison of completed vs.
   required chain levels (Production, Post-Harvest, Processing, Marketing,
   Consumption)

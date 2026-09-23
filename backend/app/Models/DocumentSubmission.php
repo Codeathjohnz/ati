@@ -10,6 +10,12 @@ class DocumentSubmission extends Model
 {
     use HasFactory;
 
+    public const REVIEW_PENDING = 'pending';
+
+    public const REVIEW_APPROVED = 'approved';
+
+    public const REVIEW_NEEDS_REVISION = 'needs_revision';
+
     protected $fillable = [
         'trainee_id',
         'training_history_id',
@@ -18,6 +24,9 @@ class DocumentSubmission extends Model
         'date_submitted',
         'remarks',
         'updated_by',
+        'attachment_path',
+        'attachment_original_name',
+        'review_status',
     ];
 
     protected $casts = [
