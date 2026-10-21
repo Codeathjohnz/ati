@@ -11,9 +11,10 @@ use Illuminate\Support\Collection;
  * officer-set answer key.
  *
  * Multiple-choice compares the submitted option to `correct_answer` exactly.
- * Fill-in-the-blank compares trimmed, case-insensitive text — a known v1
- * simplification with no fuzzy/partial-credit matching, so answer keys
- * should list the expected wording exactly as trainees would type it.
+ * Fill-in-the-blank and Identification both compare trimmed, case-insensitive
+ * text — a known v1 simplification with no fuzzy/partial-credit matching, so
+ * answer keys should list the expected wording exactly as trainees would
+ * type it.
  */
 class TestGradingService
 {
@@ -56,7 +57,7 @@ class TestGradingService
             return $submitted === $question->correct_answer;
         }
 
-        // fill_blank: trimmed, case-insensitive exact match.
+        // fill_blank / identification: trimmed, case-insensitive exact match.
         return mb_strtolower(trim($submitted)) === mb_strtolower(trim($question->correct_answer));
     }
 

@@ -78,6 +78,25 @@ class TestGradingServiceTest extends TestCase
         $this->assertFalse($result['passed']);
     }
 
+    public function test_identification_grades_the_same_way_as_fill_blank(): void
+    {
+        $test = $this->makeTest();
+        $q = $test->questions()->create([
+            'type' => 'identification',
+            'question_text' => 'What do you call the first chain level?',
+            'correct_answer' => 'Production',
+            'points' => 1,
+            'sort_order' => 0,
+        ]);
+
+        $result = (new TestGradingService)->grade($test->fresh(), [$q->id => '  production  ']);
+        $this->assertSame(1, $result['raw_score']);
+        $this->assertTrue($result['passed']);
+
+        $result = (new TestGradingService)->grade($test->fresh(), [$q->id => 'Marketing']);
+        $this->assertSame(0, $result['raw_score']);
+    }
+
     public function test_an_unanswered_question_counts_as_incorrect_not_an_error(): void
     {
         $test = $this->makeTest();

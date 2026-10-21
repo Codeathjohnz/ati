@@ -15,6 +15,9 @@ return new class extends Migration
             $table->string('title');
             $table->text('instructions')->nullable();
             $table->unsignedTinyInteger('passing_score')->default(70);
+            // A test is editable as a draft at any point; trainees can only
+            // see and take it once an officer explicitly publishes it.
+            $table->boolean('is_published')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 

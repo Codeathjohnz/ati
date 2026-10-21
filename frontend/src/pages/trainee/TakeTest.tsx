@@ -37,10 +37,21 @@ export default function TakeTest() {
   if (isLoading) return <LoadingBlock />
   if (error || !data) return <ErrorBlock message={extractErrorMessage(error)} />
 
-  if (!data.exists || !data.test) {
+  if (!data.exists) {
     return (
       <Card className="px-5 py-10 text-center text-sm text-slate-500">
         <p>No test has been set up for this training yet.</p>
+        <Link to="/trainee/documents" className="mt-3 inline-block text-brand-600 hover:underline">
+          Back to My Documents
+        </Link>
+      </Card>
+    )
+  }
+
+  if (data.published === false || !data.test) {
+    return (
+      <Card className="px-5 py-10 text-center text-sm text-slate-500">
+        <p>Your Project Officer is still preparing this test — check back once it's published.</p>
         <Link to="/trainee/documents" className="mt-3 inline-block text-brand-600 hover:underline">
           Back to My Documents
         </Link>

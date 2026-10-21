@@ -45,7 +45,7 @@ class TrainingProgramTestController extends Controller
             'instructions' => ['nullable', 'string'],
             'passing_score' => ['required', 'integer', 'min:0', 'max:100'],
             'questions' => ['required', 'array', 'min:1'],
-            'questions.*.type' => ['required', Rule::in([TestQuestion::TYPE_MULTIPLE_CHOICE, TestQuestion::TYPE_FILL_BLANK])],
+            'questions.*.type' => ['required', Rule::in(TestQuestion::TYPES)],
             'questions.*.question_text' => ['required', 'string'],
             'questions.*.options' => ['nullable', 'array'],
             'questions.*.options.*' => ['string'],
@@ -109,5 +109,53 @@ class TrainingProgramTestController extends Controller
         );
 
         return response()->json(['message' => 'Test removed.']);
+    }
+
+    /**
+     * Makes a drafted test visible and takeable by trainees. Kept separate
+     * from upsert() on purpose — an officer can build and revise a test
+     * freely without trainees seeing it mid-edit, then publish once it's
+     * actually ready.
+     */
+    public function publish(Request $request, TrainingProgram $trainingProgram, string $type)
+    {
+        $this->validateType($type);
+
+        $test = $trainingProgram->tests()->where('type', $type)->with('questions')->first();
+        abort_unless($test, 404, 'Save the test before publishing it.');
+        abort_if($test->questions->isEmpty(), 422, 'Add at least one question before publishing.');
+
+        $test->update(['is_published' => true]);
+
+        ActivityLog::record(
+            $request->user()->id,
+            'training_program_test.published',
+            'TrainingProgram',
+            $trainingProgram->id,
+            'Published the '.($type === TrainingProgramTest::TYPE_PRE ? 'Pre-Test' : 'Post-Test').' for "'.$trainingProgram->name.'".'
+        );
+
+        return response()->json($test->fresh('questions'));
+    }
+
+    /** Pulls a published test back to draft — trainees immediately stop seeing it. */
+    public function unpublish(Request $request, TrainingProgram $trainingProgram, string $type)
+    {
+        $this->validateType($type);
+
+        $test = $trainingProgram->tests()->where('type', $type)->first();
+        abort_unless($test, 404);
+
+        $test->update(['is_published' => false]);
+
+        ActivityLog::record(
+            $request->user()->id,
+            'training_program_test.unpublished',
+            'TrainingProgram',
+            $trainingProgram->id,
+            'Unpublished the '.($type === TrainingProgramTest::TYPE_PRE ? 'Pre-Test' : 'Post-Test').' for "'.$trainingProgram->name.'" (back to draft).'
+        );
+
+        return response()->json($test->fresh('questions'));
     }
 }

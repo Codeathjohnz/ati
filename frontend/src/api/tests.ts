@@ -17,6 +17,12 @@ export const trainingProgramTestsApi = {
   upsert: (trainingProgramId: number, type: TestType, payload: TestPayload) =>
     apiClient.put<TrainingProgramTest>(`/training-programs/${trainingProgramId}/tests/${type}`, payload).then((r) => r.data),
   remove: (trainingProgramId: number, type: TestType) => apiClient.delete(`/training-programs/${trainingProgramId}/tests/${type}`),
+  /** Makes a drafted test visible and takeable by trainees. */
+  publish: (trainingProgramId: number, type: TestType) =>
+    apiClient.post<TrainingProgramTest>(`/training-programs/${trainingProgramId}/tests/${type}/publish`).then((r) => r.data),
+  /** Pulls a published test back to draft. */
+  unpublish: (trainingProgramId: number, type: TestType) =>
+    apiClient.post<TrainingProgramTest>(`/training-programs/${trainingProgramId}/tests/${type}/unpublish`).then((r) => r.data),
 }
 
 export const traineeTestApi = {
@@ -25,6 +31,8 @@ export const traineeTestApi = {
     apiClient
       .get<{
         exists: boolean
+        /** Only present once a draft exists (true once published, false while it's still a draft). */
+        published?: boolean
         test?: { id: number; type: TestType; title: string; instructions: string | null; passing_score: number; questions: TestQuestion[] }
         latest_attempt?: TestAttemptResult | null
       }>(`/trainee/me/training-history/${trainingHistoryId}/tests/${type}`)

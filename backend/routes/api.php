@@ -68,6 +68,8 @@ Route::prefix('v1')->group(function () {
             Route::get('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'show']);
             Route::put('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'upsert']);
             Route::delete('training-programs/{trainingProgram}/tests/{type}', [TrainingProgramTestController::class, 'destroy']);
+            Route::post('training-programs/{trainingProgram}/tests/{type}/publish', [TrainingProgramTestController::class, 'publish']);
+            Route::post('training-programs/{trainingProgram}/tests/{type}/unpublish', [TrainingProgramTestController::class, 'unpublish']);
 
             Route::get('trainees/{trainee}/competency-gaps', [CompetencyGapController::class, 'forTrainee']);
             Route::get('competency-gaps', [CompetencyGapController::class, 'index']);

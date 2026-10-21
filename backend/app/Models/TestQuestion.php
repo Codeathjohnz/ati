@@ -14,6 +14,10 @@ class TestQuestion extends Model
 
     public const TYPE_FILL_BLANK = 'fill_blank';
 
+    public const TYPE_IDENTIFICATION = 'identification';
+
+    public const TYPES = [self::TYPE_MULTIPLE_CHOICE, self::TYPE_FILL_BLANK, self::TYPE_IDENTIFICATION];
+
     protected $fillable = [
         'training_program_test_id',
         'type',

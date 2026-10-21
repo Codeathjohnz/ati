@@ -257,6 +257,25 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['training-programs', trainingProgramId, 'tests', type] }),
   })
 
+  const publishMutation = useMutation({
+    // Save whatever's currently in the form first, so Publish can never make
+    // live a stale version from before the officer's last unsaved edits.
+    mutationFn: async () => {
+      await trainingProgramTestsApi.upsert(trainingProgramId, type, { title, instructions, passing_score: passingScore, questions })
+      return trainingProgramTestsApi.publish(trainingProgramId, type)
+    },
+    onSuccess: () => {
+      setError(null)
+      queryClient.invalidateQueries({ queryKey: ['training-programs', trainingProgramId, 'tests', type] })
+    },
+    onError: (err) => setError(extractErrorMessage(err)),
+  })
+
+  const unpublishMutation = useMutation({
+    mutationFn: () => trainingProgramTestsApi.unpublish(trainingProgramId, type),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['training-programs', trainingProgramId, 'tests', type] }),
+  })
+
   function updateQuestion(i: number, patch: Partial<TestQuestion>) {
     setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)))
   }
@@ -274,6 +293,16 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
   return (
     <div className="space-y-4">
       {error && <ErrorBlock message={error} />}
+      {data?.exists && (
+        <div className="flex items-center gap-2">
+          <Badge tone={data.test?.is_published ? 'green' : 'amber'}>{data.test?.is_published ? 'Published' : 'Draft'}</Badge>
+          <span className="text-xs text-slate-500">
+            {data.test?.is_published
+              ? "Trainees can see and take this test right now."
+              : "Trainees won't see this until you publish it."}
+          </span>
+        </div>
+      )}
       <Field label="Test Title">
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Production Basics Pre-Test" />
       </Field>
@@ -311,6 +340,7 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
                   >
                     <option value="multiple_choice">Multiple Choice</option>
                     <option value="fill_blank">Fill in the Blank</option>
+                    <option value="identification">Identification</option>
                   </Select>
                   <Input
                     type="number"
@@ -385,12 +415,22 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
         </Button>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2">
           <Button onClick={() => saveMutation.mutate()} disabled={!isValid || saveMutation.isPending}>
-            {saveMutation.isPending ? 'Saving…' : 'Save Test'}
+            {saveMutation.isPending ? 'Saving…' : 'Save Draft'}
           </Button>
           {saved && <Badge tone="green">Saved</Badge>}
+          {data?.exists &&
+            (data.test?.is_published ? (
+              <Button variant="secondary" size="sm" onClick={() => unpublishMutation.mutate()} disabled={unpublishMutation.isPending}>
+                {unpublishMutation.isPending ? 'Unpublishing…' : 'Unpublish'}
+              </Button>
+            ) : (
+              <Button variant="secondary" size="sm" onClick={() => publishMutation.mutate()} disabled={!isValid || publishMutation.isPending}>
+                {publishMutation.isPending ? 'Publishing…' : 'Publish'}
+              </Button>
+            ))}
         </div>
         {data?.exists && (
           <Button
@@ -406,6 +446,10 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
           </Button>
         )}
       </div>
+      <p className="text-xs text-slate-400">
+        Save Draft keeps changes private to you. Publish is a separate step that makes the test visible and takeable by trainees —
+        unsaved question edits are saved automatically before publishing.
+      </p>
     </div>
   )
 }

@@ -21,7 +21,12 @@ class TrainingProgramTest extends Model
         'title',
         'instructions',
         'passing_score',
+        'is_published',
         'created_by',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
     ];
 
     public function trainingProgram(): BelongsTo

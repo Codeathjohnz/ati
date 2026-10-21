@@ -46,6 +46,12 @@ class TraineeTestController extends Controller
             return response()->json(['exists' => false]);
         }
 
+        // A draft exists but the officer hasn't published it yet — tell the
+        // trainee it's coming, rather than pretending nothing was set up.
+        if (! $test->is_published) {
+            return response()->json(['exists' => true, 'published' => false]);
+        }
+
         $trainee = $request->user()->traineeProfile;
         $latestAttempt = TraineeTestAttempt::where('training_program_test_id', $test->id)
             ->where('trainee_id', $trainee->id)
@@ -55,6 +61,7 @@ class TraineeTestController extends Controller
 
         return response()->json([
             'exists' => true,
+            'published' => true,
             'test' => [
                 'id' => $test->id,
                 'type' => $test->type,
@@ -84,6 +91,7 @@ class TraineeTestController extends Controller
             ->with('questions')
             ->first();
         abort_unless($test, 404, 'No test has been set up for this training yet.');
+        abort_unless($test->is_published, 422, 'This test has not been published yet.');
 
         $validated = $request->validate([
             'answers' => ['required', 'array'],

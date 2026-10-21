@@ -214,7 +214,7 @@ export interface DashboardStats {
 
 export type TestType = 'pre_test' | 'post_test'
 
-export type QuestionType = 'multiple_choice' | 'fill_blank'
+export type QuestionType = 'multiple_choice' | 'fill_blank' | 'identification'
 
 export interface TestQuestion {
   id?: number
@@ -233,6 +233,7 @@ export interface TrainingProgramTest {
   title: string
   instructions: string | null
   passing_score: number
+  is_published: boolean
   questions: TestQuestion[]
 }
 

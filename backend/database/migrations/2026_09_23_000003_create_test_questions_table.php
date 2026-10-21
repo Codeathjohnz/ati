@@ -11,7 +11,10 @@ return new class extends Migration
         Schema::create('test_questions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('training_program_test_id')->constrained('training_program_tests')->cascadeOnDelete();
-            $table->enum('type', ['multiple_choice', 'fill_blank']);
+            // Plain string, not a DB enum: validated against the allowed
+            // type list in TrainingProgramTestController instead, so adding
+            // a new question type later never requires an ALTER TABLE.
+            $table->string('type');
             $table->text('question_text');
             $table->json('options')->nullable();
             $table->string('correct_answer');
