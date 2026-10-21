@@ -18,6 +18,11 @@ export default function TakeTest() {
   })
 
   const [answers, setAnswers] = useState<Record<number, string>>({})
+  // Tracked separately by option *index*, not text — two multiple-choice
+  // options can have identical wording, and comparing by text would make
+  // clicking one silently also "select" every other option with the same
+  // text (or confuse React's reconciliation if used as a list key).
+  const [selectedOption, setSelectedOption] = useState<Record<number, number>>({})
   const [retaking, setRetaking] = useState(false)
   const [result, setResult] = useState<{ percentage: number; passed: boolean; raw_score: number; max_score: number } | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -86,7 +91,7 @@ export default function TakeTest() {
                 {shownResult.passed ? 'Passed' : `Below passing score (${data.test.passing_score}%)`}
               </Badge>
             </div>
-            <Button variant="secondary" onClick={() => { setRetaking(true); setResult(null); setAnswers({}) }}>
+            <Button variant="secondary" onClick={() => { setRetaking(true); setResult(null); setAnswers({}); setSelectedOption({}) }}>
               Retake Test
             </Button>
           </div>
@@ -102,11 +107,11 @@ export default function TakeTest() {
                 </p>
                 {q.type === 'multiple_choice' ? (
                   <div className="space-y-2">
-                    {(q.options ?? []).map((opt) => {
-                      const selected = answers[q.id!] === opt
+                    {(q.options ?? []).map((opt, oi) => {
+                      const selected = selectedOption[q.id!] === oi
                       return (
                         <label
-                          key={opt}
+                          key={oi}
                           className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
                             selected ? 'border-brand-500 bg-brand-50 text-brand-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50'
                           }`}
@@ -115,7 +120,10 @@ export default function TakeTest() {
                             type="radio"
                             name={`q-${q.id}`}
                             checked={selected}
-                            onChange={() => setAnswers((a) => ({ ...a, [q.id!]: opt }))}
+                            onChange={() => {
+                              setSelectedOption((s) => ({ ...s, [q.id!]: oi }))
+                              setAnswers((a) => ({ ...a, [q.id!]: opt }))
+                            }}
                             className="h-4 w-4 shrink-0"
                           />
                           <span className="flex-1">{opt}</span>

@@ -224,6 +224,14 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
   const [instructions, setInstructions] = useState('')
   const [passingScore, setPassingScore] = useState(70)
   const [questions, setQuestions] = useState<TestQuestion[]>([emptyQuestion()])
+  // Which option *index* is marked correct, per question (keyed by the
+  // question's position in `questions`) — not the option's text. Two
+  // options can share identical wording (especially placeholder text while
+  // still drafting), and deriving "which one is correct" from a text
+  // lookup always resolves to the first match, so clicking the 2nd or 3rd
+  // identical-text option would visually snap the check mark back to the
+  // 1st. This tracks the actual clicked position directly instead.
+  const [correctIndex, setCorrectIndex] = useState<Record<number, number>>({})
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -232,12 +240,20 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
       setTitle(data.test.title)
       setInstructions(data.test.instructions ?? '')
       setPassingScore(data.test.passing_score)
-      setQuestions(data.test.questions.length > 0 ? data.test.questions : [emptyQuestion()])
+      const loaded = data.test.questions.length > 0 ? data.test.questions : [emptyQuestion()]
+      setQuestions(loaded)
+      // Best-effort on load: the saved data is text-only, so this can only
+      // guess the first matching option — correct once the officer clicks
+      // a specific one again.
+      setCorrectIndex(
+        Object.fromEntries(loaded.map((q, i) => [i, (q.options ?? []).indexOf(q.correct_answer ?? '')])),
+      )
     } else if (data && !data.exists) {
       setTitle('')
       setInstructions('')
       setPassingScore(70)
       setQuestions([emptyQuestion()])
+      setCorrectIndex({})
     }
   }, [data])
 
@@ -364,15 +380,18 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
                         <input
                           type="radio"
                           name={`correct-${i}`}
-                          checked={q.correct_answer === opt && opt !== ''}
-                          onChange={() => updateQuestion(i, { correct_answer: opt })}
+                          checked={opt !== '' && correctIndex[i] === oi}
+                          onChange={() => {
+                            setCorrectIndex((c) => ({ ...c, [i]: oi }))
+                            updateQuestion(i, { correct_answer: opt })
+                          }}
                           title="Mark as correct answer"
                         />
                         <Input
                           value={opt}
                           onChange={(e) => {
                             updateOption(i, oi, e.target.value)
-                            if (q.correct_answer === opt) updateQuestion(i, { correct_answer: e.target.value })
+                            if (correctIndex[i] === oi) updateQuestion(i, { correct_answer: e.target.value })
                           }}
                           placeholder={`Option ${oi + 1}`}
                           className="flex-1"
@@ -381,7 +400,15 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
                           <button
                             type="button"
                             className="text-xs text-red-600"
-                            onClick={() => updateQuestion(i, { options: (q.options ?? []).filter((_, j) => j !== oi) })}
+                            onClick={() => {
+                              updateQuestion(i, { options: (q.options ?? []).filter((_, j) => j !== oi) })
+                              setCorrectIndex((c) => {
+                                const current = c[i]
+                                if (current === undefined) return c
+                                if (current === oi) return { ...c, [i]: -1 } // the removed option was the correct one
+                                return current > oi ? { ...c, [i]: current - 1 } : c
+                              })
+                            }}
                           >
                             Remove
                           </button>
@@ -403,7 +430,19 @@ function TestEditor({ trainingProgramId, type }: { trainingProgramId: number; ty
                 type="button"
                 className="text-xs text-red-600 disabled:text-slate-300"
                 disabled={questions.length <= 1}
-                onClick={() => setQuestions((qs) => qs.filter((_, idx) => idx !== i))}
+                onClick={() => {
+                  setQuestions((qs) => qs.filter((_, idx) => idx !== i))
+                  setCorrectIndex((c) => {
+                    const next: Record<number, number> = {}
+                    Object.entries(c).forEach(([key, value]) => {
+                      const idx = Number(key)
+                      if (idx < i) next[idx] = value
+                      else if (idx > i) next[idx - 1] = value
+                      // idx === i (the removed question) is dropped
+                    })
+                    return next
+                  })
+                }}
               >
                 Remove question
               </button>
