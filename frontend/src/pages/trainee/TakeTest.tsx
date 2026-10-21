@@ -101,18 +101,27 @@ export default function TakeTest() {
                   {i + 1}. {q.question_text}
                 </p>
                 {q.type === 'multiple_choice' ? (
-                  <div className="space-y-1.5">
-                    {(q.options ?? []).map((opt) => (
-                      <label key={opt} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-                        <input
-                          type="radio"
-                          name={`q-${q.id}`}
-                          checked={answers[q.id!] === opt}
-                          onChange={() => setAnswers((a) => ({ ...a, [q.id!]: opt }))}
-                        />
-                        {opt}
-                      </label>
-                    ))}
+                  <div className="space-y-2">
+                    {(q.options ?? []).map((opt) => {
+                      const selected = answers[q.id!] === opt
+                      return (
+                        <label
+                          key={opt}
+                          className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
+                            selected ? 'border-brand-500 bg-brand-50 text-brand-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={`q-${q.id}`}
+                            checked={selected}
+                            onChange={() => setAnswers((a) => ({ ...a, [q.id!]: opt }))}
+                            className="h-4 w-4 shrink-0"
+                          />
+                          <span className="flex-1">{opt}</span>
+                        </label>
+                      )
+                    })}
                   </div>
                 ) : (
                   <Field label="Your answer">
