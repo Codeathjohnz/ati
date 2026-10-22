@@ -19,4 +19,26 @@ export const adminApi = {
   updateRequiredDocument: (id: number, payload: { code: string; name: string; is_active?: boolean; sort_order?: number }) =>
     apiClient.put<RequiredDocument>(`/admin/required-documents/${id}`, payload).then((r) => r.data),
   removeRequiredDocument: (id: number) => apiClient.delete(`/admin/required-documents/${id}`),
+  storageUsage: () => apiClient.get<StorageUsage>('/admin/storage').then((r) => r.data),
+}
+
+export interface StorageConsumer {
+  label: string
+  path: string
+  size_bytes: number
+  percent_of_app: number
+}
+
+export interface StorageUsage {
+  generated_at: string
+  filesystem: {
+    path: string
+    total_bytes: number | null
+    used_bytes: number | null
+    free_bytes: number | null
+    used_percent: number | null
+  }
+  app_total_bytes: number
+  top_consumers: StorageConsumer[]
+  other_bytes: number
 }

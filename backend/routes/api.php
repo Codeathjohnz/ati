@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AuditLogController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\SettingController;
+use App\Http\Controllers\Api\Admin\StorageMonitorController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompetencyGapController;
@@ -38,6 +39,7 @@ Route::prefix('v1')->group(function () {
             Route::get('settings', [SettingController::class, 'index']);
             Route::put('settings', [SettingController::class, 'update']);
             Route::get('audit-logs', [AuditLogController::class, 'index']);
+            Route::get('storage', [StorageMonitorController::class, 'index']);
             Route::apiResource('required-documents', RequiredDocumentController::class)
                 ->except(['show'])
                 ->parameters(['required-documents' => 'requiredDocument']);

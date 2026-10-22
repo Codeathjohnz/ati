@@ -13,6 +13,7 @@ import Reports from '../pages/shared/Reports'
 import AdminUsers from '../pages/admin/Users'
 import AdminSettings from '../pages/admin/Settings'
 import AdminAuditLogs from '../pages/admin/AuditLogs'
+import AdminStorageMonitor from '../pages/admin/StorageMonitor'
 
 import TraineesList from '../pages/officer/TraineesList'
 import TraineeForm from '../pages/officer/TraineeForm'
@@ -48,6 +49,7 @@ export default function AppRouter() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="audit-logs" element={<AdminAuditLogs />} />
+          <Route path="storage" element={<AdminStorageMonitor />} />
           <Route path="reports" element={<Reports />} />
         </Route>
 

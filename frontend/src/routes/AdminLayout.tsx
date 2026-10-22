@@ -6,6 +6,7 @@ const navItems = [
   { to: '/admin/users', label: 'User Accounts', icon: '👥' },
   { to: '/admin/settings', label: 'Settings', icon: '⚙️' },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: '📜' },
+  { to: '/admin/storage', label: 'Storage Monitor', icon: '💾' },
   { to: '/admin/reports', label: 'Reports', icon: '📁' },
 ]
 
