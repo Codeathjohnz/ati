@@ -1,10 +1,22 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { traineeSelfApi } from '../../api/traineeSelf'
+import { certificatesApi } from '../../api/certificates'
 import { extractErrorMessage } from '../../api/client'
-import { Badge, Card, CardHeader, ChainLevelStatusBadge, ComplianceBadge, ErrorBlock, LoadingBlock } from '../../components/ui'
+import { Badge, Button, Card, CardHeader, ChainLevelStatusBadge, ComplianceBadge, ErrorBlock, LoadingBlock } from '../../components/ui'
 
 export default function MyActivityHistory() {
   const { data, isLoading, error } = useQuery({ queryKey: ['trainee', 'me', 'activity-history'], queryFn: traineeSelfApi.activityHistory })
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      await certificatesApi.downloadMine()
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   if (isLoading) return <LoadingBlock />
   if (error || !data) return <ErrorBlock message={extractErrorMessage(error)} />
@@ -30,7 +42,16 @@ export default function MyActivityHistory() {
         </Card>
 
         <Card>
-          <CardHeader title="Competency Gap Analysis" />
+          <CardHeader
+            title="Competency Gap Analysis"
+            action={
+              !data.competency_gaps.has_gaps && (
+                <Button size="sm" onClick={handleDownload} disabled={downloading}>
+                  {downloading ? 'Preparing…' : '🎓 Certificate'}
+                </Button>
+              )
+            }
+          />
           <div className="divide-y divide-slate-100">
             {data.competency_gaps.chain_levels.map((l) => (
               <div key={l.chain_level} className="flex items-center justify-between px-5 py-3 text-sm">

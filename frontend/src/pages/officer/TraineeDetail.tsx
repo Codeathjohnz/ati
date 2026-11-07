@@ -7,6 +7,7 @@ import { trainingHistoryApi, type TrainingHistoryPayload } from '../../api/train
 import { trainingProgramsApi } from '../../api/trainingPrograms'
 import { documentsApi } from '../../api/documents'
 import { competencyGapsApi } from '../../api/competencyGaps'
+import { certificatesApi } from '../../api/certificates'
 import { extractErrorMessage } from '../../api/client'
 import type { TraineeProfile } from '../../types'
 import {
@@ -374,25 +375,48 @@ function CompetencyGapsTab({ traineeId }: { traineeId: number }) {
     queryKey: ['trainees', traineeId, 'competency-gaps'],
     queryFn: () => competencyGapsApi.forTrainee(traineeId),
   })
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      await certificatesApi.download(traineeId)
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   if (isLoading) return <LoadingBlock />
 
   return (
-    <Card>
-      <CardHeader
-        title="Competency Gap Analysis"
-        subtitle="Chain levels required vs. completed, based on recorded training history."
-        action={data && <Badge tone={data.has_gaps ? 'amber' : 'green'}>{data.gap_count} gap{data.gap_count === 1 ? '' : 's'}</Badge>}
-      />
-      <div className="divide-y divide-slate-100">
-        {data?.chain_levels.map((level) => (
-          <div key={level.chain_level} className="flex items-center justify-between px-5 py-3 text-sm">
-            <span className="font-medium text-slate-800">{level.chain_level}</span>
-            <ChainLevelStatusBadge completed={level.completed} />
+    <div className="space-y-4">
+      {data && !data.has_gaps && (
+        <Card className="border-brand-200 bg-brand-50">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <p className="text-sm font-semibold text-brand-800">🎉 All 5 chain levels complete — a Certificate of Completion has been issued.</p>
+            <Button size="sm" onClick={handleDownload} disabled={downloading}>
+              {downloading ? 'Preparing…' : '🎓 Download Certificate'}
+            </Button>
           </div>
-        ))}
-      </div>
-    </Card>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader
+          title="Competency Gap Analysis"
+          subtitle="Chain levels required vs. completed, based on recorded training history."
+          action={data && <Badge tone={data.has_gaps ? 'amber' : 'green'}>{data.gap_count} gap{data.gap_count === 1 ? '' : 's'}</Badge>}
+        />
+        <div className="divide-y divide-slate-100">
+          {data?.chain_levels.map((level) => (
+            <div key={level.chain_level} className="flex items-center justify-between px-5 py-3 text-sm">
+              <span className="font-medium text-slate-800">{level.chain_level}</span>
+              <ChainLevelStatusBadge completed={level.completed} />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
   )
 }
 

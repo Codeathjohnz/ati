@@ -59,6 +59,11 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    // The React SPA's own URL — used for building links back into it from
+    // the backend (e.g. the certificate verification link embedded in a
+    // QR code). Same source as cors.php's allowed_origins.
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

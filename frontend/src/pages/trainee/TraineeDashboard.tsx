@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { traineeSelfApi } from '../../api/traineeSelf'
 import { documentsApi } from '../../api/documents'
 import { competencyGapsApi } from '../../api/competencyGaps'
+import { certificatesApi } from '../../api/certificates'
 import { extractErrorMessage } from '../../api/client'
-import { Card, CardHeader, ComplianceBadge, ErrorBlock, LoadingBlock, StatTile } from '../../components/ui'
+import { Button, Card, CardHeader, ComplianceBadge, ErrorBlock, LoadingBlock, StatTile } from '../../components/ui'
 
 export default function TraineeDashboard() {
   const { data: profile, isLoading, error } = useQuery({ queryKey: ['trainee', 'me'], queryFn: traineeSelfApi.profile })
@@ -31,6 +33,8 @@ export default function TraineeDashboard() {
         />
       </div>
 
+      {gaps && !gaps.has_gaps && <CertificateBanner />}
+
       <Card>
         <CardHeader title="Quick Links" />
         <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2">
@@ -41,6 +45,35 @@ export default function TraineeDashboard() {
         </div>
       </Card>
     </div>
+  )
+}
+
+function CertificateBanner() {
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      await certificatesApi.downloadMine()
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <Card className="border-brand-200 bg-brand-50">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+        <div>
+          <p className="text-sm font-semibold text-brand-800">🎉 You've completed every chain level!</p>
+          <p className="mt-0.5 text-sm text-brand-700">
+            Your Certificate of Completion — recognizing you as an Empowered &amp; Bankable Farmer — is ready.
+          </p>
+        </div>
+        <Button onClick={handleDownload} disabled={downloading}>
+          {downloading ? 'Preparing…' : '🎓 Download Certificate'}
+        </Button>
+      </div>
+    </Card>
   )
 }
 

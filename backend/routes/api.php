@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\SettingController;
 use App\Http\Controllers\Api\Admin\StorageMonitorController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\CompetencyGapController;
 use App\Http\Controllers\Api\DocumentSubmissionController;
 use App\Http\Controllers\Api\MetaController;
@@ -22,6 +23,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
+
+    // Public — what scanning a certificate's QR code (or visiting its
+    // verification link directly) lands on. No auth, by design: anyone
+    // holding a certificate should be able to prove it's genuine.
+    Route::get('verify/{certificateNumber}', [CertificateController::class, 'verify']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
@@ -76,6 +82,9 @@ Route::prefix('v1')->group(function () {
             Route::get('trainees/{trainee}/competency-gaps', [CompetencyGapController::class, 'forTrainee']);
             Route::get('competency-gaps', [CompetencyGapController::class, 'index']);
 
+            Route::get('trainees/{trainee}/certificate', [CertificateController::class, 'forTrainee']);
+            Route::get('trainees/{trainee}/certificate/download', [CertificateController::class, 'download']);
+
             Route::apiResource('training-programs', TrainingProgramController::class)
                 ->parameters(['training-programs' => 'trainingProgram']);
             Route::get('training-programs-upcoming', [TrainingProgramController::class, 'upcoming']);
@@ -103,6 +112,9 @@ Route::prefix('v1')->group(function () {
 
             Route::get('me/training-history/{trainingHistory}/tests/{type}', [TraineeTestController::class, 'show']);
             Route::post('me/training-history/{trainingHistory}/tests/{type}/attempt', [TraineeTestController::class, 'attempt']);
+
+            Route::get('me/certificate', [CertificateController::class, 'mine']);
+            Route::get('me/certificate/download', [CertificateController::class, 'downloadMine']);
         });
     });
 });
