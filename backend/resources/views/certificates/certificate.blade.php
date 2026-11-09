@@ -23,14 +23,8 @@
             text-align: center;
         }
         .badge {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: #2f5233;
-            color: #fff;
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 42px;
+            width: 46px;
+            height: 46px;
             margin: 0 auto 4px auto;
         }
         .org-name { font-size: 12px; letter-spacing: 2px; color: #2f5233; font-weight: bold; text-transform: uppercase; }
@@ -82,7 +76,7 @@
 <body>
     <div class="frame">
         <div class="frame-inner">
-            <div class="badge">AT</div>
+            <img class="badge" src="{{ public_path('images/logo.png') }}">
             <div class="org-name">Agricultural Training Institute &mdash; Caraga Region</div>
             <div class="org-sub">Digital Trainee Tracker</div>
 

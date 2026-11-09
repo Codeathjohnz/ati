@@ -15,8 +15,8 @@ export default function VerifyCertificate() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white mx-auto">
-          DT
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 mx-auto">
+          <img src="/logo.png" alt="Digital Trainee Tracker logo" className="h-10 w-10 object-contain" />
         </div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Digital Trainee Tracker</p>
         <h1 className="mt-2 text-lg font-semibold text-slate-900">Certificate Verification</h1>

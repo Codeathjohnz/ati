@@ -44,7 +44,7 @@ export function AppShell({ navItems, children, badge }: { navItems: NavItem[]; c
         )}
       >
         <div className="flex h-16 items-center gap-2 border-b border-slate-100 px-5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">DT</div>
+          <img src="/logo.png" alt="Digital Trainee Tracker logo" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight text-slate-900">Digital Trainee Tracker</p>
             <p className="text-[11px] leading-tight text-slate-500">{badge}</p>

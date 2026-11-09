@@ -103,8 +103,8 @@ export default function Login() {
 
         {/* content */}
         <div className="relative z-10 flex items-center gap-3 anim-fade-up" style={{ animationDelay: '0.05s' }}>
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-base font-bold backdrop-blur-sm ring-1 ring-white/20">
-            DT
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
+            <img src="/logo.png" alt="Digital Trainee Tracker logo" className="h-9 w-9 object-contain" />
           </div>
           <div>
             <p className="text-sm font-semibold leading-tight tracking-wide">ATI-CARAGA</p>
@@ -155,8 +155,8 @@ export default function Login() {
       <div className="flex w-full flex-col items-center justify-center bg-slate-50 px-4 py-10 sm:px-8 lg:w-1/2 lg:bg-white xl:w-[44%]">
         <div className="w-full max-w-sm anim-fade-up" style={{ animationDelay: '0.1s' }}>
           <div className="mb-7 flex flex-col items-center text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white shadow-sm shadow-brand-600/30">
-              DT
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 shadow-sm shadow-brand-600/30">
+              <img src="/logo.png" alt="Digital Trainee Tracker logo" className="h-10 w-10 object-contain" />
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Digital Trainee Tracker</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
