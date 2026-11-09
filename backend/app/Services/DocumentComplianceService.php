@@ -63,6 +63,7 @@ class DocumentComplianceService
         return [
             'training_history_id' => $history->id,
             'training_program_id' => $history->training_program_id,
+            'chain_level' => $history->trainingProgram?->chain_level,
             'documents' => $documents->all(),
             'overall_status' => $overallStatus,
         ];

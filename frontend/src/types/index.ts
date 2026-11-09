@@ -102,6 +102,7 @@ export interface TrainingComplianceEntry {
   training_history_id: number
   training_program_id: number
   training_program_name?: string
+  chain_level?: ChainLevel | null
   date_attended?: string
   documents: DocumentStatusEntry[]
   overall_status: 'Passed' | 'Incomplete'

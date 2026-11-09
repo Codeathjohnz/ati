@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { documentsApi } from '../../api/documents'
 import { extractErrorMessage } from '../../api/client'
-import { Card, CardHeader, ComplianceBadge, ErrorBlock, LoadingBlock, ReviewStatusBadge, Button } from '../../components/ui'
+import { Badge, Card, CardHeader, ComplianceBadge, ErrorBlock, LoadingBlock, ReviewStatusBadge, Button } from '../../components/ui'
 import type { DocumentStatusEntry } from '../../types'
 
 const TESTABLE_CODES = new Set(['pre_test', 'post_test'])
@@ -30,7 +30,12 @@ export default function MyDocuments() {
       {data.per_training.map((entry) => (
         <Card key={entry.training_history_id}>
           <CardHeader
-            title={entry.training_program_name ?? 'Training'}
+            title={
+              <span className="flex items-center gap-2">
+                {entry.training_program_name ?? 'Training'}
+                {entry.chain_level && <Badge tone="blue">{entry.chain_level}</Badge>}
+              </span>
+            }
             subtitle={entry.date_attended?.slice(0, 10)}
             action={<ComplianceBadge status={entry.overall_status} />}
           />
