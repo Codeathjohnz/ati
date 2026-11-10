@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\CompetencyGapController;
 use App\Http\Controllers\Api\DocumentSubmissionController;
 use App\Http\Controllers\Api\MetaController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RequiredDocumentController;
 use App\Http\Controllers\Api\TraineeProfileController;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/google', [AuthController::class, 'google']);
+    Route::post('auth/forgot-password', [PasswordResetController::class, 'forgot']);
+    Route::post('auth/reset-password', [PasswordResetController::class, 'reset']);
 
     // Public — what scanning a certificate's QR code (or visiting its
     // verification link directly) lands on. No auth, by design: anyone
@@ -94,9 +97,13 @@ Route::prefix('v1')->group(function () {
             Route::post('confirmations/{confirmation}/respond', [TrainingConfirmationController::class, 'respond']);
 
             Route::get('reports/attendance', [ReportController::class, 'attendance']);
+            Route::get('reports/attendance/pdf', [ReportController::class, 'attendancePdf']);
             Route::get('reports/document-compliance', [ReportController::class, 'documentCompliance']);
+            Route::get('reports/document-compliance/pdf', [ReportController::class, 'documentCompliancePdf']);
             Route::get('reports/competency-gaps', [ReportController::class, 'competencyGaps']);
+            Route::get('reports/competency-gaps/pdf', [ReportController::class, 'competencyGapsPdf']);
             Route::get('reports/demographics', [ReportController::class, 'demographics']);
+            Route::get('reports/demographics/pdf', [ReportController::class, 'demographicsPdf']);
         });
 
         // Trainee Module: self-service only, scoped server-side to the caller's own profile

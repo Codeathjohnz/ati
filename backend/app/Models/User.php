@@ -57,4 +57,14 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_TRAINEE;
     }
+
+    /**
+     * Overrides the CanResetPassword trait's default, which sends Laravel's
+     * built-in notification pointing at a named web route this API-only app
+     * doesn't have. Sends our own, linking into the frontend SPA instead.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }

@@ -7,6 +7,8 @@ import TraineeLayout from './TraineeLayout'
 
 import Login from '../pages/auth/Login'
 import VerifyCertificate from '../pages/public/VerifyCertificate'
+import ForgotPassword from '../pages/public/ForgotPassword'
+import ResetPassword from '../pages/public/ResetPassword'
 
 import Dashboard from '../pages/shared/Dashboard'
 import Reports from '../pages/shared/Reports'
@@ -35,6 +37,8 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify/:certificateNumber" element={<VerifyCertificate />} />
         <Route path="/" element={<RoleRedirect />} />
 

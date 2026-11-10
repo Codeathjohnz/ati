@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { extractErrorMessage } from '../../api/client'
 import { Button, ErrorBlock } from '../../components/ui'
@@ -230,15 +230,20 @@ export default function Login() {
               </div>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-600">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-              />
-              Remember my username
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                Remember my username
+              </label>
+              <Link to="/forgot-password" className="text-xs font-medium text-brand-700 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
 
             <Button type="submit" className="w-full justify-center gap-2 py-2.5" disabled={submitting}>
               {submitting ? (
