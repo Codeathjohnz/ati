@@ -14,6 +14,12 @@ COPY . .
 ARG VITE_API_BASE_URL=/api/v1
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# The Google OAuth Client ID is public by design (it identifies the app to
+# Google, not a secret), but like the API URL above it's baked in at build
+# time, so it also has to come in as a build arg.
+ARG VITE_GOOGLE_CLIENT_ID=
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 RUN npm run build
 
 # ---- Stage 2: serve the static build with nginx ----------------------------------------

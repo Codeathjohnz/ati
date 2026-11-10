@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { extractErrorMessage } from '../../api/client'
 import { Button, ErrorBlock } from '../../components/ui'
+import { GoogleSignInButton } from '../../components/GoogleSignInButton'
 
 const REMEMBER_KEY = 'ati_remember_username'
 
@@ -31,7 +32,7 @@ const PARTICLES = [
 ]
 
 export default function Login() {
-  const { login, isAuthenticated, isLoading } = useAuth()
+  const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth()
   const [username, setUsername] = useState(() => localStorage.getItem(REMEMBER_KEY) ?? '')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(() => Boolean(localStorage.getItem(REMEMBER_KEY)))
@@ -57,6 +58,18 @@ export default function Login() {
       else localStorage.removeItem(REMEMBER_KEY)
     } catch (err) {
       setError(extractErrorMessage(err, 'Invalid username or password.'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleGoogleCredential(credential: string) {
+    setError(null)
+    setSubmitting(true)
+    try {
+      await loginWithGoogle(credential)
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Could not sign in with Google.'))
     } finally {
       setSubmitting(false)
     }
@@ -238,6 +251,15 @@ export default function Login() {
               )}
             </Button>
           </form>
+
+          <div className="mt-5 flex items-center gap-3 text-xs text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            Trainees
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+          <div className="mt-3">
+            <GoogleSignInButton onCredential={handleGoogleCredential} />
+          </div>
 
           <p className="mt-6 text-center text-xs text-slate-400">
             Need an account? Contact your Project Officer or System Administrator.

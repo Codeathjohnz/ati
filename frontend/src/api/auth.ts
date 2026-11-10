@@ -13,6 +13,7 @@ export interface LoginResponse {
 
 export const authApi = {
   login: (payload: LoginPayload) => apiClient.post<LoginResponse>('/auth/login', payload).then((r) => r.data),
+  google: (credential: string) => apiClient.post<LoginResponse>('/auth/google', { credential }).then((r) => r.data),
   logout: () => apiClient.post('/auth/logout'),
   me: () => apiClient.get<{ user: User }>('/auth/me').then((r) => r.data.user),
 }

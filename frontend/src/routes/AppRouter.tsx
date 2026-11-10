@@ -52,6 +52,7 @@ export default function AppRouter() {
           <Route path="settings" element={<AdminSettings />} />
           <Route path="audit-logs" element={<AdminAuditLogs />} />
           <Route path="storage" element={<AdminStorageMonitor />} />
+          <Route path="training-programs" element={<TrainingPrograms />} />
           <Route path="reports" element={<Reports />} />
         </Route>
 

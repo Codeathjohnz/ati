@@ -34,13 +34,37 @@ export default function UpcomingTraining() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {c.status === 'pending' ? (
+                {c.status === 'pending' && (
                   <>
                     <Button size="sm" onClick={() => respondMutation.mutate({ id: c.id, status: 'confirmed' })}>Confirm</Button>
                     <Button size="sm" variant="secondary" onClick={() => respondMutation.mutate({ id: c.id, status: 'declined' })}>Decline</Button>
                   </>
-                ) : (
-                  <Badge tone={c.status === 'confirmed' ? 'green' : 'red'}>{c.status}</Badge>
+                )}
+                {c.status === 'confirmed' && (
+                  <>
+                    <Badge tone="green">confirmed</Badge>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => respondMutation.mutate({ id: c.id, status: 'declined' })}
+                      disabled={respondMutation.isPending}
+                    >
+                      Cancel (emergency)
+                    </Button>
+                  </>
+                )}
+                {c.status === 'declined' && (
+                  <>
+                    <Badge tone="red">declined</Badge>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => respondMutation.mutate({ id: c.id, status: 'confirmed' })}
+                      disabled={respondMutation.isPending}
+                    >
+                      Confirm instead
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

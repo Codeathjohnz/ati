@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::post('auth/google', [AuthController::class, 'google']);
 
     // Public — what scanning a certificate's QR code (or visiting its
     // verification link directly) lands on. No auth, by design: anyone

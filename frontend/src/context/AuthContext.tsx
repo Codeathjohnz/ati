@@ -8,6 +8,7 @@ interface AuthContextValue {
   isLoading: boolean
   isAuthenticated: boolean
   login: (payload: LoginPayload) => Promise<User>
+  loginWithGoogle: (credential: string) => Promise<User>
   logout: () => Promise<void>
 }
 
@@ -47,6 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loggedInUser
   }, [])
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    const { token, user: loggedInUser } = await authApi.google(credential)
+    setStoredToken(token)
+    setUser(loggedInUser)
+    return loggedInUser
+  }, [])
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout()
@@ -56,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession])
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   )
