@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -64,6 +64,20 @@ export function HelpBubble() {
   const location = useLocation()
   const { user } = useAuth()
   const tips = tipsFor(location.pathname)
+
+  useEffect(() => {
+    if (!user) return
+    try {
+      const key = `help_bubble_seen_${user.id}`
+      if (!localStorage.getItem(key)) {
+        setOpen(true)
+        localStorage.setItem(key, '1')
+      }
+    } catch {
+      // Storage unavailable (private mode, blocked, etc.) — just skip auto-opening.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   return (
     <div className="fixed bottom-5 right-5 z-50">
