@@ -12,6 +12,7 @@ import ResetPassword from '../pages/public/ResetPassword'
 
 import Dashboard from '../pages/shared/Dashboard'
 import Reports from '../pages/shared/Reports'
+import HelpCenter from '../pages/shared/HelpCenter'
 
 import AdminUsers from '../pages/admin/Users'
 import AdminSettings from '../pages/admin/Settings'
@@ -58,6 +59,7 @@ export default function AppRouter() {
           <Route path="storage" element={<AdminStorageMonitor />} />
           <Route path="training-programs" element={<TrainingPrograms />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="help" element={<HelpCenter />} />
         </Route>
 
         {/* Project Officer Module */}
@@ -78,6 +80,7 @@ export default function AppRouter() {
           <Route path="competency-gaps" element={<OfficerCompetencyGaps />} />
           <Route path="upcoming-confirmations" element={<UpcomingConfirmations />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="help" element={<HelpCenter />} />
         </Route>
 
         {/* Trainee Module */}
@@ -95,6 +98,7 @@ export default function AppRouter() {
           <Route path="training-history/:trainingHistoryId/tests/:type" element={<TakeTest />} />
           <Route path="upcoming-training" element={<UpcomingTraining />} />
           <Route path="activity-history" element={<MyActivityHistory />} />
+          <Route path="help" element={<HelpCenter />} />
         </Route>
 
         <Route path="*" element={<RoleRedirect />} />

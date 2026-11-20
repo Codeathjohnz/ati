@@ -7,6 +7,7 @@ const navItems = [
   { to: '/trainee/documents', label: 'My Documents', icon: '📄' },
   { to: '/trainee/upcoming-training', label: 'Upcoming Training', icon: '✅' },
   { to: '/trainee/activity-history', label: 'Activity History', icon: '🕒' },
+  { to: '/trainee/help', label: 'Help', icon: '❓' },
 ]
 
 export default function TraineeLayout() {

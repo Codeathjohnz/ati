@@ -9,6 +9,7 @@ const navItems = [
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: '📜' },
   { to: '/admin/storage', label: 'Storage Monitor', icon: '💾' },
   { to: '/admin/reports', label: 'Reports', icon: '📁' },
+  { to: '/admin/help', label: 'Help', icon: '❓' },
 ]
 
 export default function AdminLayout() {

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\CompetencyGapController;
 use App\Http\Controllers\Api\DocumentSubmissionController;
+use App\Http\Controllers\Api\HelpController;
 use App\Http\Controllers\Api\MetaController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ReportController;
@@ -36,6 +37,9 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::get('auth/me', [AuthController::class, 'me']);
+
+        Route::get('help/manual', [HelpController::class, 'manual']);
+        Route::get('help/manual/pdf', [HelpController::class, 'manualPdf']);
 
         Route::get('meta', [MetaController::class, 'index']);
         Route::get('meta/locations', [MetaController::class, 'locations']);

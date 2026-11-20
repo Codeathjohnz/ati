@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuth } from '../context/AuthContext'
 import { ErrorBoundary } from './ErrorBoundary'
+import { HelpBubble } from './HelpBubble'
 import { Button, Modal } from './ui'
 
 export interface NavItem {
@@ -115,6 +116,8 @@ export function AppShell({ navItems, children, badge }: { navItems: NavItem[]; c
           </Button>
         </div>
       </Modal>
+
+      <HelpBubble />
     </div>
   )
 }

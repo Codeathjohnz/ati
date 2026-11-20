@@ -8,6 +8,7 @@ const navItems = [
   { to: '/officer/competency-gaps', label: 'Competency Gaps', icon: '🎯' },
   { to: '/officer/upcoming-confirmations', label: 'Upcoming Confirmations', icon: '✅' },
   { to: '/officer/reports', label: 'Reports', icon: '📁' },
+  { to: '/officer/help', label: 'Help', icon: '❓' },
 ]
 
 export default function OfficerLayout() {
