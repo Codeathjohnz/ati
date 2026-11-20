@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class AuditLogController extends Controller
 {
@@ -28,8 +29,9 @@ class AuditLogController extends Controller
             $query->whereDate('created_at', '<=', $request->date('to'));
         }
 
-        $logs = $query->orderByDesc('created_at')->paginate(min((int) $request->input('per_page', 25), 200) ?: 25);
+        $logs = $query->orderByDesc('created_at')->orderByDesc('id')
+            ->paginate(min((int) $request->input('per_page', 25), 200) ?: 25);
 
-        return response()->json($logs);
+        return JsonResource::collection($logs);
     }
 }
