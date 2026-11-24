@@ -20,6 +20,8 @@ class TrainingProgram extends Model
     protected $fillable = [
         'name',
         'description',
+        'resource_person_name',
+        'topics',
         'chain_levels',
         'venue',
         'start_date',
@@ -31,6 +33,7 @@ class TrainingProgram extends Model
 
     protected $casts = [
         'chain_levels' => 'array',
+        'topics' => 'array',
         'start_date' => 'date',
         'end_date' => 'date',
         'is_posted' => 'boolean',

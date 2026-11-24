@@ -6,10 +6,21 @@ import { trainingRegistrationsApi } from '../../api/trainingRegistrations'
 import { attendanceApi } from '../../api/attendance'
 import { metaApi } from '../../api/meta'
 import { extractErrorMessage } from '../../api/client'
-import type { TestQuestion, TestType, TrainingProgram } from '../../types'
+import type { TestQuestion, TestType, TrainingProgram, TrainingTopic } from '../../types'
 import { Badge, Button, Card, ErrorBlock, Field, Input, LoadingBlock, Modal, Pagination, Select, Textarea } from '../../components/ui'
 
-const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_levels: ['Production'], venue: '', start_date: '', end_date: '', status: 'upcoming', is_posted: false }
+const emptyForm: TrainingProgramPayload = {
+  name: '',
+  description: '',
+  resource_person_name: '',
+  topics: [],
+  chain_levels: ['Production'],
+  venue: '',
+  start_date: '',
+  end_date: '',
+  status: 'upcoming',
+  is_posted: false,
+}
 
 const statusTone: Record<string, 'slate' | 'green' | 'amber' | 'blue'> = {
   upcoming: 'blue',
@@ -59,7 +70,18 @@ export default function TrainingPrograms() {
 
   function openEdit(p: TrainingProgram) {
     setEditing(p)
-    setForm({ name: p.name, description: p.description ?? '', chain_levels: p.chain_levels, venue: p.venue ?? '', start_date: p.start_date, end_date: p.end_date ?? '', status: p.status, is_posted: p.is_posted })
+    setForm({
+      name: p.name,
+      description: p.description ?? '',
+      resource_person_name: p.resource_person_name ?? '',
+      topics: p.topics ?? [],
+      chain_levels: p.chain_levels,
+      venue: p.venue ?? '',
+      start_date: p.start_date,
+      end_date: p.end_date ?? '',
+      status: p.status,
+      is_posted: p.is_posted,
+    })
     setError(null)
     setModalOpen(true)
   }
@@ -70,8 +92,9 @@ export default function TrainingPrograms() {
 
   function handleSubmit() {
     setError(null)
-    if (editing) updateMutation.mutate(form)
-    else createMutation.mutate(form)
+    const payload = { ...form, topics: (form.topics ?? []).filter((t) => t.name.trim() !== '') }
+    if (editing) updateMutation.mutate(payload)
+    else createMutation.mutate(payload)
   }
 
   return (
@@ -150,6 +173,19 @@ export default function TrainingPrograms() {
           </Field>
           <Field label="Description">
             <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </Field>
+          <Field label="Resource Person Name">
+            <Input
+              value={form.resource_person_name}
+              onChange={(e) => setForm({ ...form, resource_person_name: e.target.value })}
+              placeholder="Who is delivering this training?"
+            />
+          </Field>
+          <Field label="Topics Discussed">
+            <TopicsEditor
+              topics={form.topics ?? []}
+              onChange={(topics) => setForm({ ...form, topics })}
+            />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Chain Level(s)">
@@ -277,6 +313,36 @@ function RegistrantsList({ trainingProgramId }: { trainingProgramId: number }) {
         </div>
       ))}
       {data?.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No one has registered for this training yet.</p>}
+    </div>
+  )
+}
+
+function TopicsEditor({ topics, onChange }: { topics: TrainingTopic[]; onChange: (topics: TrainingTopic[]) => void }) {
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-300 p-2.5">
+      {topics.map((topic, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input
+            value={topic.name}
+            onChange={(e) => onChange(topics.map((t, idx) => (idx === i ? { ...t, name: e.target.value } : t)))}
+            placeholder="Topic name"
+            className="flex-1"
+          />
+          <Input
+            value={topic.duration ?? ''}
+            onChange={(e) => onChange(topics.map((t, idx) => (idx === i ? { ...t, duration: e.target.value } : t)))}
+            placeholder="Duration (e.g. 2 hrs)"
+            className="w-36"
+          />
+          <button type="button" className="text-xs text-red-600" onClick={() => onChange(topics.filter((_, idx) => idx !== i))}>
+            Remove
+          </button>
+        </div>
+      ))}
+      <Button size="sm" variant="ghost" onClick={() => onChange([...topics, { name: '', duration: '' }])}>
+        + Add Topic
+      </Button>
+      {topics.length === 0 && <p className="text-xs text-slate-400">No topics added yet — used for the Resource Person evaluation form.</p>}
     </div>
   )
 }

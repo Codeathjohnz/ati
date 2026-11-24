@@ -51,10 +51,17 @@ export interface TraineeProfile {
   updated_at?: string
 }
 
+export interface TrainingTopic {
+  name: string
+  duration?: string | null
+}
+
 export interface TrainingProgram {
   id: number
   name: string
   description: string | null
+  resource_person_name: string | null
+  topics: TrainingTopic[] | null
   chain_levels: ChainLevel[]
   venue: string | null
   start_date: string
@@ -258,3 +265,52 @@ export interface TestAttemptResult {
   attempted_at: string
   answers: Record<string, string>
 }
+
+export type TopicRelevance = 'Very Relevant' | 'Somewhat relevant' | 'Not at all relevant'
+export type TopicTimeAllocation = 'Just right' | 'Need improvement'
+export type TopicMethodology = 'Effective' | 'Not Effective'
+
+export interface TopicRating {
+  topic: string
+  relevance: TopicRelevance
+  time_allocation: TopicTimeAllocation
+  suggested_time?: string | null
+  methodology: TopicMethodology
+  suggested_methodology?: string | null
+}
+
+export const LIKERT_CRITERIA: Array<{ key: string; label: string }> = [
+  { key: 'clarity_objectives', label: 'Clarity of the topic objectives at the beginning' },
+  { key: 'topic_organization', label: 'Organization/sequencing of topic' },
+  { key: 'clarity_presentation', label: 'Clarity of topic/ideas presented/discussed' },
+  { key: 'instructional_aids_quality', label: 'Quality and effectiveness of instructional aids used' },
+  { key: 'teaching_ability', label: 'Ability to teach/communicate ideas' },
+  { key: 'question_answering_ability', label: 'Ability to answer questions' },
+  { key: 'participant_interest', label: 'Ability to arouse/sustain interest' },
+  { key: 'time_management', label: 'Ability to manage time' },
+  { key: 'topic_ending', label: 'How the topic was ended' },
+  { key: 'overall_satisfaction', label: 'Overall level of satisfaction' },
+]
+
+export interface RpEvaluation {
+  id: number
+  trainee_id: number
+  training_history_id: number
+  topic_ratings: TopicRating[]
+  clarity_objectives: number
+  topic_organization: number
+  clarity_presentation: number
+  instructional_aids_quality: number
+  teaching_ability: number
+  question_answering_ability: number
+  participant_interest: number
+  time_management: number
+  topic_ending: number
+  overall_satisfaction: number
+  liked_about_rp: string | null
+  disliked_about_rp: string | null
+  other_remarks: string | null
+  created_at?: string
+}
+
+export type RpEvaluationPayload = Omit<RpEvaluation, 'id' | 'trainee_id' | 'training_history_id' | 'created_at'>

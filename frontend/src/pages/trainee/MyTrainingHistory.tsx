@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { traineeSelfApi } from '../../api/traineeSelf'
 import { extractErrorMessage } from '../../api/client'
-import { Badge, Card, CardHeader, ErrorBlock, LoadingBlock } from '../../components/ui'
+import { Badge, Button, Card, CardHeader, ErrorBlock, LoadingBlock } from '../../components/ui'
 
 export default function MyTrainingHistory() {
   const { data, isLoading, error } = useQuery({
@@ -28,7 +29,12 @@ export default function MyTrainingHistory() {
                 <p className="font-medium text-slate-800">{h.training_program?.name}</p>
                 <p className="text-xs text-slate-500">{h.date_attended}</p>
               </div>
-              <Badge tone="blue">{h.chain_levels.join(', ')}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge tone="blue">{h.chain_levels.join(', ')}</Badge>
+                <Link to={`/trainee/training-history/${h.id}/evaluation`}>
+                  <Button size="sm" variant="secondary">Evaluate</Button>
+                </Link>
+              </div>
             </div>
           ))}
           {data.training_history.length === 0 && (

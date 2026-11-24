@@ -34,6 +34,7 @@ import MyDocuments from '../pages/trainee/MyDocuments'
 import UpcomingTraining from '../pages/trainee/UpcomingTraining'
 import MyActivityHistory from '../pages/trainee/MyActivityHistory'
 import TakeTest from '../pages/trainee/TakeTest'
+import EvaluationForm from '../pages/trainee/EvaluationForm'
 
 export default function AppRouter() {
   return (
@@ -100,6 +101,7 @@ export default function AppRouter() {
           <Route path="available-trainings" element={<AvailableTrainings />} />
           <Route path="documents" element={<MyDocuments />} />
           <Route path="training-history/:trainingHistoryId/tests/:type" element={<TakeTest />} />
+          <Route path="training-history/:trainingHistoryId/evaluation" element={<EvaluationForm />} />
           <Route path="upcoming-training" element={<UpcomingTraining />} />
           <Route path="activity-history" element={<MyActivityHistory />} />
           <Route path="help" element={<HelpCenter />} />

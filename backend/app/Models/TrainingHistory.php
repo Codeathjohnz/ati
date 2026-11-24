@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TrainingHistory extends Model
 {
@@ -45,5 +46,10 @@ class TrainingHistory extends Model
     public function documentSubmissions(): HasMany
     {
         return $this->hasMany(DocumentSubmission::class);
+    }
+
+    public function rpEvaluation(): HasOne
+    {
+        return $this->hasOne(RpEvaluation::class);
     }
 }

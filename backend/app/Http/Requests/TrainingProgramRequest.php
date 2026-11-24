@@ -18,6 +18,10 @@ class TrainingProgramRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string'],
+            'resource_person_name' => ['nullable', 'string', 'max:200'],
+            'topics' => ['nullable', 'array'],
+            'topics.*.name' => ['required_with:topics', 'string', 'max:200'],
+            'topics.*.duration' => ['nullable', 'string', 'max:100'],
             'chain_levels' => ['required', 'array', 'min:1'],
             'chain_levels.*' => [Rule::in(TrainingProgram::CHAIN_LEVELS)],
             'venue' => ['nullable', 'string', 'max:200'],

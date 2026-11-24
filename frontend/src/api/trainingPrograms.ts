@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { PaginatedResponse, TrainingProgram } from '../types'
+import type { PaginatedResponse, TrainingProgram, TrainingTopic } from '../types'
 
 export interface TrainingProgramFilters {
   chain_level?: string
@@ -12,6 +12,8 @@ export interface TrainingProgramFilters {
 export interface TrainingProgramPayload {
   name: string
   description?: string
+  resource_person_name?: string
+  topics?: TrainingTopic[]
   chain_levels: string[]
   venue?: string
   start_date: string

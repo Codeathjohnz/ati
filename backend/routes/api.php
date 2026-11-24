@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MetaController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RequiredDocumentController;
+use App\Http\Controllers\Api\RpEvaluationController;
 use App\Http\Controllers\Api\TraineeProfileController;
 use App\Http\Controllers\Api\TraineeSelfController;
 use App\Http\Controllers\Api\TraineeTestController;
@@ -134,6 +135,9 @@ Route::prefix('v1')->group(function () {
 
             Route::get('me/training-history/{trainingHistory}/tests/{type}', [TraineeTestController::class, 'show']);
             Route::post('me/training-history/{trainingHistory}/tests/{type}/attempt', [TraineeTestController::class, 'attempt']);
+
+            Route::get('me/training-history/{trainingHistory}/evaluation', [RpEvaluationController::class, 'show']);
+            Route::post('me/training-history/{trainingHistory}/evaluation', [RpEvaluationController::class, 'store']);
 
             Route::get('me/certificate', [CertificateController::class, 'mine']);
             Route::get('me/certificate/download', [CertificateController::class, 'downloadMine']);
