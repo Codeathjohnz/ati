@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\TrainingConfirmationController;
 use App\Http\Controllers\Api\TrainingHistoryController;
 use App\Http\Controllers\Api\TrainingProgramController;
 use App\Http\Controllers\Api\TrainingProgramTestController;
+use App\Http\Controllers\Api\TrainingRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -100,6 +101,8 @@ Route::prefix('v1')->group(function () {
             Route::get('trainees/{trainee}/confirmations', [TrainingConfirmationController::class, 'forTrainee']);
             Route::post('confirmations/{confirmation}/respond', [TrainingConfirmationController::class, 'respond']);
 
+            Route::get('training-programs/{trainingProgram}/registrations', [TrainingRegistrationController::class, 'forTrainingProgram']);
+
             Route::get('reports/attendance', [ReportController::class, 'attendance']);
             Route::get('reports/attendance/pdf', [ReportController::class, 'attendancePdf']);
             Route::get('reports/document-compliance', [ReportController::class, 'documentCompliance']);
@@ -117,6 +120,10 @@ Route::prefix('v1')->group(function () {
             Route::get('me/competency-gaps', [TraineeSelfController::class, 'competencyGaps']);
             Route::get('me/confirmations', [TraineeSelfController::class, 'confirmations']);
             Route::post('me/confirmations/{confirmation}/respond', [TrainingConfirmationController::class, 'respond']);
+
+            Route::get('me/training-programs-posted', [TrainingRegistrationController::class, 'posted']);
+            Route::post('me/training-programs/{trainingProgram}/register', [TrainingRegistrationController::class, 'register']);
+            Route::delete('me/training-programs/{trainingProgram}/register', [TrainingRegistrationController::class, 'withdraw']);
             Route::get('me/activity-history', [TraineeSelfController::class, 'activityHistory']);
 
             Route::post('me/training-history/{trainingHistory}/documents/{requiredDocumentId}/upload', [DocumentSubmissionController::class, 'uploadAsTrainee']);

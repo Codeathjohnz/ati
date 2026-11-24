@@ -28,6 +28,7 @@ import UpcomingConfirmations from '../pages/officer/UpcomingConfirmations'
 
 import TraineeDashboard from '../pages/trainee/TraineeDashboard'
 import MyTrainingHistory from '../pages/trainee/MyTrainingHistory'
+import AvailableTrainings from '../pages/trainee/AvailableTrainings'
 import MyDocuments from '../pages/trainee/MyDocuments'
 import UpcomingTraining from '../pages/trainee/UpcomingTraining'
 import MyActivityHistory from '../pages/trainee/MyActivityHistory'
@@ -94,6 +95,7 @@ export default function AppRouter() {
         >
           <Route index element={<TraineeDashboard />} />
           <Route path="training-history" element={<MyTrainingHistory />} />
+          <Route path="available-trainings" element={<AvailableTrainings />} />
           <Route path="documents" element={<MyDocuments />} />
           <Route path="training-history/:trainingHistoryId/tests/:type" element={<TakeTest />} />
           <Route path="upcoming-training" element={<UpcomingTraining />} />

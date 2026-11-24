@@ -60,9 +60,20 @@ export interface TrainingProgram {
   start_date: string
   end_date: string | null
   status: TrainingStatus
+  is_posted: boolean
   created_by: number | null
   attendee_count?: number
+  registration_count?: number
   created_at?: string
+}
+
+export interface TrainingRegistration {
+  id: number
+  trainee_id: number
+  training_program_id: number
+  registered_at: string
+  training_program?: TrainingProgram
+  trainee?: TraineeProfile
 }
 
 export interface TrainingHistoryRecord {

@@ -156,7 +156,7 @@ export function Field({ label, children, error }: { label: string; children: Rea
   )
 }
 
-export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: 'slate' | 'green' | 'red' | 'amber' | 'blue' }) {
+export function Badge({ children, tone = 'slate', className }: { children: ReactNode; tone?: 'slate' | 'green' | 'red' | 'amber' | 'blue'; className?: string }) {
   const tones: Record<string, string> = {
     slate: 'bg-slate-100 text-slate-700',
     green: 'bg-brand-100 text-brand-800',
@@ -164,7 +164,7 @@ export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?
     amber: 'bg-amber-100 text-amber-800',
     blue: 'bg-blue-100 text-blue-700',
   }
-  return <span className={clsx('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', tones[tone])}>{children}</span>
+  return <span className={clsx('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', tones[tone], className)}>{children}</span>
 }
 
 export function YesNoBadge({ value }: { value: boolean }) {

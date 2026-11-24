@@ -25,6 +25,7 @@ class TrainingProgram extends Model
         'start_date',
         'end_date',
         'status',
+        'is_posted',
         'created_by',
     ];
 
@@ -32,6 +33,7 @@ class TrainingProgram extends Model
         'chain_levels' => 'array',
         'start_date' => 'date',
         'end_date' => 'date',
+        'is_posted' => 'boolean',
     ];
 
     public function creator(): BelongsTo
@@ -47,6 +49,11 @@ class TrainingProgram extends Model
     public function confirmations(): HasMany
     {
         return $this->hasMany(TrainingConfirmation::class);
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(TrainingRegistration::class);
     }
 
     public function tests(): HasMany

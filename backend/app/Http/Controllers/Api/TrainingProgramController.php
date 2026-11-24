@@ -13,7 +13,7 @@ class TrainingProgramController extends Controller
 {
     public function index(Request $request)
     {
-        $query = TrainingProgram::query()->withCount('trainingHistory');
+        $query = TrainingProgram::query()->withCount(['trainingHistory', 'registrations']);
 
         if ($request->filled('chain_level')) {
             $query->whereJsonContains('chain_levels', $request->string('chain_level')->toString());
@@ -57,7 +57,7 @@ class TrainingProgramController extends Controller
 
     public function show(TrainingProgram $trainingProgram)
     {
-        $trainingProgram->loadCount('trainingHistory');
+        $trainingProgram->loadCount(['trainingHistory', 'registrations']);
 
         return new TrainingProgramResource($trainingProgram);
     }

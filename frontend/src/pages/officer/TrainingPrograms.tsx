@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { trainingProgramsApi, type TrainingProgramPayload } from '../../api/trainingPrograms'
 import { trainingProgramTestsApi } from '../../api/tests'
+import { trainingRegistrationsApi } from '../../api/trainingRegistrations'
 import { metaApi } from '../../api/meta'
 import { extractErrorMessage } from '../../api/client'
 import type { TestQuestion, TestType, TrainingProgram } from '../../types'
 import { Badge, Button, Card, ErrorBlock, Field, Input, LoadingBlock, Modal, Pagination, Select, Textarea } from '../../components/ui'
 
-const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_levels: ['Production'], venue: '', start_date: '', end_date: '', status: 'upcoming' }
+const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_levels: ['Production'], venue: '', start_date: '', end_date: '', status: 'upcoming', is_posted: false }
 
 const statusTone: Record<string, 'slate' | 'green' | 'amber' | 'blue'> = {
   upcoming: 'blue',
@@ -24,6 +25,7 @@ export default function TrainingPrograms() {
   const [form, setForm] = useState<TrainingProgramPayload>(emptyForm)
   const [error, setError] = useState<string | null>(null)
   const [testsProgram, setTestsProgram] = useState<TrainingProgram | null>(null)
+  const [registrantsProgram, setRegistrantsProgram] = useState<TrainingProgram | null>(null)
 
   const { data: meta } = useQuery({ queryKey: ['meta'], queryFn: metaApi.get })
   const { data, isLoading } = useQuery({
@@ -55,7 +57,7 @@ export default function TrainingPrograms() {
 
   function openEdit(p: TrainingProgram) {
     setEditing(p)
-    setForm({ name: p.name, description: p.description ?? '', chain_levels: p.chain_levels, venue: p.venue ?? '', start_date: p.start_date, end_date: p.end_date ?? '', status: p.status })
+    setForm({ name: p.name, description: p.description ?? '', chain_levels: p.chain_levels, venue: p.venue ?? '', start_date: p.start_date, end_date: p.end_date ?? '', status: p.status, is_posted: p.is_posted })
     setError(null)
     setModalOpen(true)
   }
@@ -92,6 +94,7 @@ export default function TrainingPrograms() {
                     <th className="px-5 py-2.5">Chain Level</th>
                     <th className="px-5 py-2.5">Dates</th>
                     <th className="px-5 py-2.5">Attendees</th>
+                    <th className="px-5 py-2.5">Registrants</th>
                     <th className="px-5 py-2.5">Status</th>
                     <th className="px-5 py-2.5" />
                   </tr>
@@ -103,6 +106,12 @@ export default function TrainingPrograms() {
                       <td className="px-5 py-3 text-slate-600">{p.chain_levels.join(', ')}</td>
                       <td className="px-5 py-3 text-slate-600">{p.start_date}{p.end_date ? ` – ${p.end_date}` : ''}</td>
                       <td className="px-5 py-3 text-slate-600">{p.attendee_count ?? 0}</td>
+                      <td className="px-5 py-3 text-slate-600">
+                        <button className="underline decoration-dotted hover:text-brand-700" onClick={() => setRegistrantsProgram(p)}>
+                          {p.registration_count ?? 0}
+                        </button>
+                        {p.is_posted && <Badge tone="blue" className="ml-2">Posted</Badge>}
+                      </td>
                       <td className="px-5 py-3"><Badge tone={statusTone[p.status]}>{p.status}</Badge></td>
                       <td className="px-5 py-3 text-right">
                         <div className="flex justify-end gap-2">
@@ -120,7 +129,7 @@ export default function TrainingPrograms() {
                     </tr>
                   ))}
                   {data.data.length === 0 && (
-                    <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">No training programs yet.</td></tr>
+                    <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No training programs yet.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -181,6 +190,15 @@ export default function TrainingPrograms() {
               <Input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
             </Field>
           </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.is_posted ?? false}
+              onChange={(e) => setForm({ ...form, is_posted: e.target.checked })}
+              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            Open for trainee registration
+          </label>
           <Button
             className="w-full"
             onClick={handleSubmit}
@@ -199,6 +217,35 @@ export default function TrainingPrograms() {
       >
         {testsProgram && <TestsManager trainingProgramId={testsProgram.id} />}
       </Modal>
+
+      <Modal
+        open={registrantsProgram !== null}
+        onClose={() => setRegistrantsProgram(null)}
+        title={registrantsProgram ? `Registrants — ${registrantsProgram.name}` : 'Registrants'}
+      >
+        {registrantsProgram && <RegistrantsList trainingProgramId={registrantsProgram.id} />}
+      </Modal>
+    </div>
+  )
+}
+
+function RegistrantsList({ trainingProgramId }: { trainingProgramId: number }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['training-programs', trainingProgramId, 'registrations'],
+    queryFn: () => trainingRegistrationsApi.forTrainingProgram(trainingProgramId),
+  })
+
+  if (isLoading) return <LoadingBlock />
+
+  return (
+    <div className="divide-y divide-slate-100">
+      {data?.map((r) => (
+        <div key={r.id} className="flex items-center justify-between py-3 text-sm">
+          <span className="text-slate-800">{r.trainee?.full_name}</span>
+          <span className="text-xs text-slate-500">{new Date(r.registered_at).toLocaleDateString()}</span>
+        </div>
+      ))}
+      {data?.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No one has registered for this training yet.</p>}
     </div>
   )
 }

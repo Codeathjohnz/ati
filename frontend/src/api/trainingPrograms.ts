@@ -17,6 +17,7 @@ export interface TrainingProgramPayload {
   start_date: string
   end_date?: string
   status?: string
+  is_posted?: boolean
 }
 
 export const trainingProgramsApi = {
