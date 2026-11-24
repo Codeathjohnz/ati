@@ -98,7 +98,7 @@ class ReportController extends Controller
                 $h->trainee?->province,
                 $h->trainee?->city_municipality,
                 $h->trainingProgram?->name,
-                $h->chain_level,
+                implode(', ', $h->chain_levels ?? []),
                 optional($h->date_attended)->toDateString(),
             ])->all(),
         ];

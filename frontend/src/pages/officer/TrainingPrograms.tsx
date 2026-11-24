@@ -7,7 +7,7 @@ import { extractErrorMessage } from '../../api/client'
 import type { TestQuestion, TestType, TrainingProgram } from '../../types'
 import { Badge, Button, Card, ErrorBlock, Field, Input, LoadingBlock, Modal, Pagination, Select, Textarea } from '../../components/ui'
 
-const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_level: 'Production', venue: '', start_date: '', end_date: '', status: 'upcoming' }
+const emptyForm: TrainingProgramPayload = { name: '', description: '', chain_levels: ['Production'], venue: '', start_date: '', end_date: '', status: 'upcoming' }
 
 const statusTone: Record<string, 'slate' | 'green' | 'amber' | 'blue'> = {
   upcoming: 'blue',
@@ -55,7 +55,7 @@ export default function TrainingPrograms() {
 
   function openEdit(p: TrainingProgram) {
     setEditing(p)
-    setForm({ name: p.name, description: p.description ?? '', chain_level: p.chain_level, venue: p.venue ?? '', start_date: p.start_date, end_date: p.end_date ?? '', status: p.status })
+    setForm({ name: p.name, description: p.description ?? '', chain_levels: p.chain_levels, venue: p.venue ?? '', start_date: p.start_date, end_date: p.end_date ?? '', status: p.status })
     setError(null)
     setModalOpen(true)
   }
@@ -100,7 +100,7 @@ export default function TrainingPrograms() {
                   {data.data.map((p) => (
                     <tr key={p.id}>
                       <td className="px-5 py-3 font-medium text-slate-800">{p.name}</td>
-                      <td className="px-5 py-3 text-slate-600">{p.chain_level}</td>
+                      <td className="px-5 py-3 text-slate-600">{p.chain_levels.join(', ')}</td>
                       <td className="px-5 py-3 text-slate-600">{p.start_date}{p.end_date ? ` – ${p.end_date}` : ''}</td>
                       <td className="px-5 py-3 text-slate-600">{p.attendee_count ?? 0}</td>
                       <td className="px-5 py-3"><Badge tone={statusTone[p.status]}>{p.status}</Badge></td>
@@ -140,12 +140,27 @@ export default function TrainingPrograms() {
             <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Chain Level">
-              <Select value={form.chain_level} onChange={(e) => setForm({ ...form, chain_level: e.target.value })}>
+            <Field label="Chain Level(s)">
+              <div className="space-y-1.5 rounded-lg border border-slate-300 p-2.5">
                 {(meta?.chain_levels ?? ['Production', 'Post-Harvest', 'Processing', 'Marketing', 'Consumption']).map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <label key={c} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.chain_levels.includes(c)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          chain_levels: e.target.checked
+                            ? [...form.chain_levels, c]
+                            : form.chain_levels.filter((level) => level !== c),
+                        })
+                      }
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    {c}
+                  </label>
                 ))}
-              </Select>
+              </div>
             </Field>
             <Field label="Status">
               <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
@@ -169,7 +184,7 @@ export default function TrainingPrograms() {
           <Button
             className="w-full"
             onClick={handleSubmit}
-            disabled={!form.name || !form.start_date || createMutation.isPending || updateMutation.isPending}
+            disabled={!form.name || !form.start_date || form.chain_levels.length === 0 || createMutation.isPending || updateMutation.isPending}
           >
             {editing ? 'Save Changes' : 'Create Training Program'}
           </Button>

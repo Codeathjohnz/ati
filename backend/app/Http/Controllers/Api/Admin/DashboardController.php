@@ -30,9 +30,23 @@ class DashboardController extends Controller
         $missingCount = (int) ($documentTotals[0] ?? 0);
         $totalDocuments = $submittedCount + $missingCount;
 
-        $trainingsByChainLevel = TrainingHistory::selectRaw('chain_level, COUNT(*) as total')
-            ->groupBy('chain_level')
-            ->pluck('total', 'chain_level');
+        // Grouped in PHP, not via a raw GROUP BY on the chain_levels JSON
+        // column (MySQL/SQLite JSON aggregation syntax differs) — a single
+        // attendance can now cover several levels at once, and each one it
+        // covers counts toward that level's total. One pass over every row
+        // also builds, per trainee, the union of every level they've ever
+        // been credited with — reused below for the per-level and
+        // per-province "no gaps" aggregates instead of three separate
+        // raw-SQL queries against a column that's no longer a plain scalar.
+        $trainingsByChainLevel = collect(TrainingProgram::CHAIN_LEVELS)->mapWithKeys(fn ($level) => [$level => 0]);
+        $traineeLevelSets = [];
+
+        TrainingHistory::select('trainee_id', 'chain_levels')->get()->each(function ($row) use (&$trainingsByChainLevel, &$traineeLevelSets) {
+            foreach ($row->chain_levels ?? [] as $level) {
+                $trainingsByChainLevel[$level] = ($trainingsByChainLevel[$level] ?? 0) + 1;
+                $traineeLevelSets[$row->trainee_id][$level] = true;
+            }
+        });
 
         $trainingsByStatus = TrainingProgram::selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
@@ -48,12 +62,8 @@ class DashboardController extends Controller
         // the same rule as CompetencyGapAnalysisService (a trainee "completes" a
         // level the moment they have one training_history row tagged with it),
         // aggregated institution-wide instead of per trainee.
-        $completedByLevel = TrainingHistory::selectRaw('chain_level, COUNT(DISTINCT trainee_id) as total')
-            ->groupBy('chain_level')
-            ->pluck('total', 'chain_level');
-
-        $competencyGapCoverage = collect(TrainingProgram::CHAIN_LEVELS)->map(function (string $level) use ($completedByLevel, $totalTrainees) {
-            $completed = (int) ($completedByLevel[$level] ?? 0);
+        $competencyGapCoverage = collect(TrainingProgram::CHAIN_LEVELS)->map(function (string $level) use ($traineeLevelSets, $totalTrainees) {
+            $completed = collect($traineeLevelSets)->filter(fn ($levels) => isset($levels[$level]))->count();
 
             return [
                 'chain_level' => $level,
@@ -87,27 +97,26 @@ class DashboardController extends Controller
         // Per province: how many trainees have a training_history row for
         // all 5 chain levels — the same "no gaps" rule as
         // CompetencyGapAnalysisService::summarize(), aggregated per province
-        // instead of per trainee. The correlated subquery is plain SQL (no
-        // DATE_FORMAT-style portability trap), so it runs the same on MySQL
-        // in production and SQLite in the test suite.
+        // instead of per trainee. Computed in PHP against $traineeLevelSets
+        // (built above) rather than a raw correlated subquery, since
+        // "distinct levels per trainee" is no longer a single-column count
+        // once a row can carry several levels at once.
         $chainLevelCount = count(TrainingProgram::CHAIN_LEVELS);
         $provinceCompletionRanking = TraineeProfile::query()
-            ->select('province')
-            ->selectRaw('COUNT(*) as total_trainees')
-            ->selectRaw(
-                'SUM(CASE WHEN (SELECT COUNT(DISTINCT th.chain_level) FROM training_history th WHERE th.trainee_id = trainee_profiles.id) = ? THEN 1 ELSE 0 END) as completed_trainees',
-                [$chainLevelCount]
-            )
-            ->groupBy('province')
+            ->select('id', 'province')
             ->get()
-            ->map(fn ($row) => [
-                'province' => $row->province,
-                'total_trainees' => (int) $row->total_trainees,
-                'completed_trainees' => (int) $row->completed_trainees,
-                'completion_rate' => $row->total_trainees > 0
-                    ? round(($row->completed_trainees / $row->total_trainees) * 100, 1)
-                    : 0,
-            ])
+            ->groupBy('province')
+            ->map(function ($trainees, $province) use ($traineeLevelSets, $chainLevelCount) {
+                $total = $trainees->count();
+                $completed = $trainees->filter(fn ($t) => count($traineeLevelSets[$t->id] ?? []) === $chainLevelCount)->count();
+
+                return [
+                    'province' => $province,
+                    'total_trainees' => $total,
+                    'completed_trainees' => $completed,
+                    'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 1) : 0,
+                ];
+            })
             ->sortByDesc('completion_rate')
             ->values();
 

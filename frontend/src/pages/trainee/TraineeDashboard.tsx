@@ -6,7 +6,7 @@ import { documentsApi } from '../../api/documents'
 import { competencyGapsApi } from '../../api/competencyGaps'
 import { certificatesApi } from '../../api/certificates'
 import { extractErrorMessage } from '../../api/client'
-import { Button, Card, CardHeader, ComplianceBadge, ErrorBlock, LoadingBlock, StatTile } from '../../components/ui'
+import { Button, Card, CardHeader, ChainLevelStatusBadge, ComplianceBadge, ErrorBlock, LoadingBlock, StatTile } from '../../components/ui'
 
 export default function TraineeDashboard() {
   const { data: profile, isLoading, error } = useQuery({ queryKey: ['trainee', 'me'], queryFn: traineeSelfApi.profile })
@@ -34,6 +34,20 @@ export default function TraineeDashboard() {
       </div>
 
       {gaps && !gaps.has_gaps && <CertificateBanner />}
+
+      {gaps && (
+        <Card>
+          <CardHeader title="Your Competency Gaps" subtitle="Where you stand across all five chain levels." />
+          <div className="divide-y divide-slate-100">
+            {gaps.chain_levels.map((l) => (
+              <div key={l.chain_level} className="flex items-center justify-between px-5 py-3 text-sm">
+                <span className="text-slate-700">{l.chain_level}</span>
+                <ChainLevelStatusBadge completed={l.completed} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card>
         <CardHeader title="Quick Links" />

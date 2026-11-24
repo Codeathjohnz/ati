@@ -24,7 +24,7 @@ class DashboardAnalyticsTest extends TestCase
         $officer = User::factory()->projectOfficer()->create();
 
         $completed = TraineeProfile::factory()->create();
-        TrainingHistory::factory()->create(['trainee_id' => $completed->id, 'chain_level' => 'Production']);
+        TrainingHistory::factory()->create(['trainee_id' => $completed->id, 'chain_levels' => ['Production']]);
 
         $missing = TraineeProfile::factory()->create();
 
@@ -77,14 +77,14 @@ class DashboardAnalyticsTest extends TestCase
         // Agusan del Norte: 1 of 2 trainees complete (all 5 chain levels) = 50%.
         $complete = TraineeProfile::factory()->create(['province' => 'Agusan del Norte']);
         foreach (TrainingProgram::CHAIN_LEVELS as $level) {
-            TrainingHistory::factory()->create(['trainee_id' => $complete->id, 'chain_level' => $level]);
+            TrainingHistory::factory()->create(['trainee_id' => $complete->id, 'chain_levels' => [$level]]);
         }
         $incomplete = TraineeProfile::factory()->create(['province' => 'Agusan del Norte']);
-        TrainingHistory::factory()->create(['trainee_id' => $incomplete->id, 'chain_level' => 'Production']);
+        TrainingHistory::factory()->create(['trainee_id' => $incomplete->id, 'chain_levels' => ['Production']]);
 
         // Surigao del Sur: 0 of 1 complete = 0%.
         $noneComplete = TraineeProfile::factory()->create(['province' => 'Surigao del Sur']);
-        TrainingHistory::factory()->create(['trainee_id' => $noneComplete->id, 'chain_level' => 'Production']);
+        TrainingHistory::factory()->create(['trainee_id' => $noneComplete->id, 'chain_levels' => ['Production']]);
 
         $response = $this->actingAs($officer, 'sanctum')->getJson('/api/v1/dashboard');
 

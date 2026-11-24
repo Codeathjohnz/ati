@@ -16,7 +16,7 @@ class TrainingProgramController extends Controller
         $query = TrainingProgram::query()->withCount('trainingHistory');
 
         if ($request->filled('chain_level')) {
-            $query->where('chain_level', $request->string('chain_level'));
+            $query->whereJsonContains('chain_levels', $request->string('chain_level')->toString());
         }
 
         if ($request->filled('status')) {

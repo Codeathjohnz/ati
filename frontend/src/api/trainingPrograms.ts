@@ -12,7 +12,7 @@ export interface TrainingProgramFilters {
 export interface TrainingProgramPayload {
   name: string
   description?: string
-  chain_level: string
+  chain_levels: string[]
   venue?: string
   start_date: string
   end_date?: string

@@ -24,7 +24,7 @@ class CompetencyGapBulkListTest extends TestCase
     {
         $officer = User::factory()->projectOfficer()->create();
         $trainee = TraineeProfile::factory()->create();
-        TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_level' => 'Production']);
+        TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_levels' => ['Production']]);
 
         $unfiltered = $this->actingAs($officer, 'sanctum')->getJson('/api/v1/competency-gaps');
         $unfiltered->assertOk()->assertJsonStructure([

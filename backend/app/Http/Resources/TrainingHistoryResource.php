@@ -14,7 +14,7 @@ class TrainingHistoryResource extends JsonResource
             'trainee_id' => $this->trainee_id,
             'training_program_id' => $this->training_program_id,
             'training_program' => new TrainingProgramResource($this->whenLoaded('trainingProgram')),
-            'chain_level' => $this->chain_level,
+            'chain_levels' => $this->chain_levels,
             'date_attended' => $this->date_attended?->toDateString(),
             'remarks' => $this->remarks,
             'created_at' => $this->created_at?->toIso8601String(),

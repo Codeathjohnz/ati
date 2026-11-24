@@ -13,7 +13,7 @@ class TrainingProgramResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'chain_level' => $this->chain_level,
+            'chain_levels' => $this->chain_levels,
             'venue' => $this->venue,
             'start_date' => $this->start_date?->toDateString(),
             'end_date' => $this->end_date?->toDateString(),

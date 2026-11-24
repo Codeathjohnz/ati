@@ -25,7 +25,7 @@ class ReportPdfTest extends TestCase
         TrainingHistory::factory()->create([
             'trainee_id' => $trainee->id,
             'training_program_id' => $program->id,
-            'chain_level' => $program->chain_level,
+            'chain_levels' => $program->chain_levels,
         ]);
 
         $response = $this->actingAs($this->asOfficer())->get('/api/v1/reports/attendance/pdf');

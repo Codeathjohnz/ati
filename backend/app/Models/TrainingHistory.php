@@ -16,13 +16,14 @@ class TrainingHistory extends Model
     protected $fillable = [
         'trainee_id',
         'training_program_id',
-        'chain_level',
+        'chain_levels',
         'date_attended',
         'remarks',
         'created_by',
     ];
 
     protected $casts = [
+        'chain_levels' => 'array',
         'date_attended' => 'date',
     ];
 

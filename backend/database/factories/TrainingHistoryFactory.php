@@ -17,7 +17,7 @@ class TrainingHistoryFactory extends Factory
         return [
             'trainee_id' => TraineeProfile::factory(),
             'training_program_id' => TrainingProgram::factory(),
-            'chain_level' => fake()->randomElement(TrainingProgram::CHAIN_LEVELS),
+            'chain_levels' => [fake()->randomElement(TrainingProgram::CHAIN_LEVELS)],
             'date_attended' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
         ];
     }

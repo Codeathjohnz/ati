@@ -229,7 +229,7 @@ function TrainingHistoryTab({ traineeId }: { traineeId: number }) {
           <div key={h.id} className="flex items-center justify-between px-5 py-3 text-sm">
             <div>
               <p className="font-medium text-slate-800">{h.training_program?.name}</p>
-              <p className="text-xs text-slate-500">{h.date_attended} &middot; {h.chain_level}</p>
+              <p className="text-xs text-slate-500">{h.date_attended} &middot; {h.chain_levels.join(', ')}</p>
               {h.remarks && <p className="mt-0.5 text-xs text-slate-400">{h.remarks}</p>}
             </div>
             <Button size="sm" variant="danger" onClick={() => deleteMutation.mutate(h.id)}>Remove</Button>
@@ -248,7 +248,7 @@ function TrainingHistoryTab({ traineeId }: { traineeId: number }) {
             >
               <option value="">Select a training program…</option>
               {programs?.data.map((p) => (
-                <option key={p.id} value={p.id}>{p.name} ({p.chain_level})</option>
+                <option key={p.id} value={p.id}>{p.name} ({p.chain_levels.join(', ')})</option>
               ))}
             </Select>
           </Field>

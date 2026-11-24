@@ -20,7 +20,7 @@ class TrainingProgram extends Model
     protected $fillable = [
         'name',
         'description',
-        'chain_level',
+        'chain_levels',
         'venue',
         'start_date',
         'end_date',
@@ -29,6 +29,7 @@ class TrainingProgram extends Model
     ];
 
     protected $casts = [
+        'chain_levels' => 'array',
         'start_date' => 'date',
         'end_date' => 'date',
     ];

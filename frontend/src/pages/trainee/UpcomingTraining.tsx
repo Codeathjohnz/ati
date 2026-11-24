@@ -30,7 +30,7 @@ export default function UpcomingTraining() {
               <div>
                 <p className="font-medium text-slate-800">{c.training_program?.name}</p>
                 <p className="text-xs text-slate-500">
-                  {c.training_program?.start_date} &middot; {c.training_program?.venue ?? 'Venue TBA'} &middot; {c.training_program?.chain_level}
+                  {c.training_program?.start_date} &middot; {c.training_program?.venue ?? 'Venue TBA'} &middot; {c.training_program?.chain_levels.join(', ')}
                 </p>
               </div>
               <div className="flex items-center gap-2">

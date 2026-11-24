@@ -28,7 +28,7 @@ export default function MyTrainingHistory() {
                 <p className="font-medium text-slate-800">{h.training_program?.name}</p>
                 <p className="text-xs text-slate-500">{h.date_attended}</p>
               </div>
-              <Badge tone="blue">{h.chain_level}</Badge>
+              <Badge tone="blue">{h.chain_levels.join(', ')}</Badge>
             </div>
           ))}
           {data.training_history.length === 0 && (

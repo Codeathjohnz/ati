@@ -32,17 +32,27 @@ class CertificateService
         }
 
         return DB::transaction(function () use ($trainee) {
-            // Earliest attendance per chain level — the date each requirement was actually met.
-            $levelDates = $trainee->trainingHistory()
+            // Earliest attendance per chain level — the date each requirement
+            // was actually met. A single attendance can now cover several
+            // levels at once, so this walks every row (earliest first) and
+            // records each level's first appearance across all of them.
+            $earliestByLevel = [];
+            $trainee->trainingHistory()
                 ->orderBy('date_attended')
-                ->get(['chain_level', 'date_attended'])
-                ->unique('chain_level')
-                ->sortBy(fn ($h) => array_search($h->chain_level, TrainingProgram::CHAIN_LEVELS, true))
-                ->values()
-                ->map(fn ($h) => [
-                    'chain_level' => $h->chain_level,
-                    'date_attended' => $h->date_attended?->toDateString(),
-                ]);
+                ->get(['chain_levels', 'date_attended'])
+                ->each(function ($h) use (&$earliestByLevel) {
+                    foreach ($h->chain_levels ?? [] as $level) {
+                        $earliestByLevel[$level] ??= $h->date_attended?->toDateString();
+                    }
+                });
+
+            $levelDates = collect(TrainingProgram::CHAIN_LEVELS)
+                ->filter(fn ($level) => isset($earliestByLevel[$level]))
+                ->map(fn ($level) => [
+                    'chain_level' => $level,
+                    'date_attended' => $earliestByLevel[$level],
+                ])
+                ->values();
 
             $certificate = Certificate::create([
                 'trainee_id' => $trainee->id,

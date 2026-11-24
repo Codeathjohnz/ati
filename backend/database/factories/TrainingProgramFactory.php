@@ -17,7 +17,7 @@ class TrainingProgramFactory extends Factory
         return [
             'name' => fake()->words(4, true).' Training',
             'description' => fake()->sentence(),
-            'chain_level' => fake()->randomElement(TrainingProgram::CHAIN_LEVELS),
+            'chain_levels' => [fake()->randomElement(TrainingProgram::CHAIN_LEVELS)],
             'venue' => 'ATI-Caraga Training Center',
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $start->format('Y-m-d'),

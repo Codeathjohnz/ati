@@ -24,11 +24,11 @@ class CompetencyGapAnalysisTest extends TestCase
         $trainee = TraineeProfile::factory()->create();
 
         foreach (['Production', 'Post-Harvest', 'Consumption'] as $level) {
-            $program = TrainingProgram::factory()->create(['chain_level' => $level]);
+            $program = TrainingProgram::factory()->create(['chain_levels' => [$level]]);
             TrainingHistory::factory()->create([
                 'trainee_id' => $trainee->id,
                 'training_program_id' => $program->id,
-                'chain_level' => $level,
+                'chain_levels' => [$level],
                 'date_attended' => now(),
             ]);
         }
@@ -45,6 +45,24 @@ class CompetencyGapAnalysisTest extends TestCase
         $this->assertSame('Incomplete (Gap)', $statuses['Processing']);
         $this->assertSame('Incomplete (Gap)', $statuses['Marketing']);
         $this->assertSame('Complete', $statuses['Consumption']);
+    }
+
+    public function test_a_single_training_program_covering_all_five_levels_closes_every_gap_at_once(): void
+    {
+        $trainee = TraineeProfile::factory()->create();
+        $program = TrainingProgram::factory()->create(['chain_levels' => TrainingProgram::CHAIN_LEVELS]);
+
+        TrainingHistory::factory()->create([
+            'trainee_id' => $trainee->id,
+            'training_program_id' => $program->id,
+            'chain_levels' => TrainingProgram::CHAIN_LEVELS,
+            'date_attended' => now(),
+        ]);
+
+        $summary = (new CompetencyGapAnalysisService)->summarize($trainee);
+
+        $this->assertSame(0, $summary['gap_count']);
+        $this->assertFalse($summary['has_gaps']);
     }
 
     public function test_a_trainee_with_no_history_has_all_five_gaps(): void

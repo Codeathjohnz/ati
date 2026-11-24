@@ -19,9 +19,14 @@ class CompetencyGapAnalysisService
      */
     public function analyze(TraineeProfile $trainee): array
     {
+        // Each training_history row now carries every chain level its program
+        // covers (a comprehensive program can close more than one gap at
+        // once), so "completed" levels are the union across all attendances,
+        // not a single column value per row.
         $completedLevels = $trainee->trainingHistory()
-            ->distinct()
-            ->pluck('chain_level')
+            ->pluck('chain_levels')
+            ->flatten()
+            ->unique()
             ->all();
 
         return collect(TrainingProgram::CHAIN_LEVELS)

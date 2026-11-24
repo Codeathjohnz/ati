@@ -33,7 +33,9 @@ export default function MyDocuments() {
             title={
               <span className="flex items-center gap-2">
                 {entry.training_program_name ?? 'Training'}
-                {entry.chain_level && <Badge tone="blue">{entry.chain_level}</Badge>}
+                {entry.chain_levels && entry.chain_levels.length > 0 && (
+                  <Badge tone="blue">{entry.chain_levels.join(', ')}</Badge>
+                )}
               </span>
             }
             subtitle={entry.date_attended?.slice(0, 10)}

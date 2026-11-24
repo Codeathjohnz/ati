@@ -18,7 +18,7 @@ class CertificateTest extends TestCase
     {
         $trainee = TraineeProfile::factory()->create();
         foreach (TrainingProgram::CHAIN_LEVELS as $level) {
-            TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_level' => $level]);
+            TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_levels' => [$level]]);
         }
 
         return $trainee;
@@ -28,7 +28,7 @@ class CertificateTest extends TestCase
     {
         $officer = User::factory()->projectOfficer()->create();
         $trainee = TraineeProfile::factory()->create();
-        TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_level' => 'Production']);
+        TrainingHistory::factory()->create(['trainee_id' => $trainee->id, 'chain_levels' => ['Production']]);
 
         $this->actingAs($officer, 'sanctum')
             ->getJson("/api/v1/trainees/{$trainee->id}/certificate")

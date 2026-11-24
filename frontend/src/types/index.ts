@@ -55,7 +55,7 @@ export interface TrainingProgram {
   id: number
   name: string
   description: string | null
-  chain_level: ChainLevel
+  chain_levels: ChainLevel[]
   venue: string | null
   start_date: string
   end_date: string | null
@@ -70,7 +70,7 @@ export interface TrainingHistoryRecord {
   trainee_id: number
   training_program_id: number
   training_program?: TrainingProgram
-  chain_level: ChainLevel
+  chain_levels: ChainLevel[]
   date_attended: string
   remarks: string | null
   created_at?: string
@@ -102,7 +102,7 @@ export interface TrainingComplianceEntry {
   training_history_id: number
   training_program_id: number
   training_program_name?: string
-  chain_level?: ChainLevel | null
+  chain_levels?: ChainLevel[] | null
   date_attended?: string
   documents: DocumentStatusEntry[]
   overall_status: 'Passed' | 'Incomplete'
