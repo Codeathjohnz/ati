@@ -26,6 +26,7 @@ import {
   ReviewStatusBadge,
   Select,
   Textarea,
+  YesNoBadge,
 } from '../../components/ui'
 
 const TABS = ['Overview', 'Training History', 'Documents', 'Competency Gaps', 'Activity History'] as const
@@ -305,7 +306,16 @@ function DocumentsTab({ traineeId }: { traineeId: number }) {
           <CardHeader
             title={entry.training_program_name ?? 'Training'}
             subtitle={entry.date_attended?.slice(0, 10)}
-            action={<ComplianceBadge status={entry.overall_status} />}
+            action={
+              <div className="flex items-center gap-3">
+                {/* Always Yes today — this list is sourced from training_history,
+                    which only ever has a row once attendance is recorded. */}
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  Attendance: <YesNoBadge value={true} />
+                </span>
+                <ComplianceBadge status={entry.overall_status} />
+              </div>
+            }
           />
           <div className="divide-y divide-slate-100">
             {entry.documents.map((doc) => (
@@ -315,7 +325,10 @@ function DocumentsTab({ traineeId }: { traineeId: number }) {
                     <span className="text-slate-700">{doc.name}</span>
                     {doc.remarks && <p className="mt-0.5 text-xs text-slate-400">{doc.remarks}</p>}
                   </div>
-                  <ReviewStatusBadge submitted={doc.submitted} status={doc.review_status} />
+                  <div className="flex items-center gap-2">
+                    <YesNoBadge value={doc.submitted} />
+                    <ReviewStatusBadge submitted={doc.submitted} status={doc.review_status} />
+                  </div>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {doc.has_attachment && (
