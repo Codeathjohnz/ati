@@ -93,8 +93,8 @@ Route::prefix('v1')->group(function () {
             Route::get('trainees/{trainee}/competency-gaps', [CompetencyGapController::class, 'forTrainee']);
             Route::get('competency-gaps', [CompetencyGapController::class, 'index']);
 
-            Route::get('trainees/{trainee}/certificate', [CertificateController::class, 'forTrainee']);
-            Route::get('trainees/{trainee}/certificate/download', [CertificateController::class, 'download']);
+            Route::get('trainees/{trainee}/training-programs/{trainingProgram}/certificate', [CertificateController::class, 'forTrainee']);
+            Route::get('trainees/{trainee}/training-programs/{trainingProgram}/certificate/download', [CertificateController::class, 'download']);
 
             Route::apiResource('training-programs', TrainingProgramController::class)
                 ->parameters(['training-programs' => 'trainingProgram']);
@@ -139,8 +139,8 @@ Route::prefix('v1')->group(function () {
             Route::get('me/training-history/{trainingHistory}/evaluation', [RpEvaluationController::class, 'show']);
             Route::post('me/training-history/{trainingHistory}/evaluation', [RpEvaluationController::class, 'store']);
 
-            Route::get('me/certificate', [CertificateController::class, 'mine']);
-            Route::get('me/certificate/download', [CertificateController::class, 'downloadMine']);
+            Route::get('me/training-programs/{trainingProgram}/certificate', [CertificateController::class, 'mine']);
+            Route::get('me/training-programs/{trainingProgram}/certificate/download', [CertificateController::class, 'downloadMine']);
         });
     });
 });

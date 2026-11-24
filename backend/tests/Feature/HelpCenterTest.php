@@ -19,7 +19,7 @@ class HelpCenterTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/v1/help/manual');
 
         $response->assertOk()->assertJsonPath('title', 'Trainee User Manual');
-        $this->assertStringContainsString('Downloading Your Certificate', $response->json('html'));
+        $this->assertStringContainsString('Downloading a Training Certificate', $response->json('html'));
     }
 
     public function test_an_officer_gets_the_officer_manual(): void

@@ -81,15 +81,15 @@
             <div class="org-sub">Digital Trainee Tracker</div>
 
             <div class="title">Certificate of Completion</div>
-            <div class="subtitle">Trainee Profiling, Document Status Tracking &amp; Competency Gap Analysis Program</div>
+            <div class="subtitle">{{ $trainingProgram->name }}</div>
 
             <div class="presented-to">This certificate is proudly presented to</div>
             <div class="trainee-name">{{ $trainee->full_name }}</div>
 
             <p class="body-text">
-                for successfully completing all five chain levels of agricultural value-chain
-                training &mdash; Production, Post-Harvest, Processing, Marketing, and Consumption &mdash;
-                and is hereby recognized as an
+                for successfully completing registration, attendance, the pre-test, the post-test, and the
+                Resource Person evaluation for this training &mdash; covering {{ implode(', ', $trainingProgram->chain_levels ?? []) }}
+                &mdash; and is hereby recognized as an
             </p>
 
             <div class="program-box">
@@ -105,7 +105,7 @@
 
             <table class="levels">
                 <thead>
-                    <tr><th>Chain Level</th><th>Date Completed</th></tr>
+                    <tr><th>Chain Level Covered</th><th>Date Attended</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($certificate->chain_levels ?? [] as $level)

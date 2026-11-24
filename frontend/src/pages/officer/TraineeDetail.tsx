@@ -233,7 +233,10 @@ function TrainingHistoryTab({ traineeId }: { traineeId: number }) {
               <p className="text-xs text-slate-500">{h.date_attended} &middot; {h.chain_levels.join(', ')}</p>
               {h.remarks && <p className="mt-0.5 text-xs text-slate-400">{h.remarks}</p>}
             </div>
-            <Button size="sm" variant="danger" onClick={() => deleteMutation.mutate(h.id)}>Remove</Button>
+            <div className="flex items-center gap-2">
+              <CertificateButton traineeId={traineeId} trainingProgramId={h.training_program_id} />
+              <Button size="sm" variant="danger" onClick={() => deleteMutation.mutate(h.id)}>Remove</Button>
+            </div>
           </div>
         ))}
         {history?.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-400">No training history recorded yet.</p>}
@@ -269,6 +272,32 @@ function TrainingHistoryTab({ traineeId }: { traineeId: number }) {
         </div>
       </Modal>
     </Card>
+  )
+}
+
+function CertificateButton({ traineeId, trainingProgramId }: { traineeId: number; trainingProgramId: number }) {
+  const [downloading, setDownloading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDownload() {
+    setDownloading(true)
+    setError(null)
+    try {
+      await certificatesApi.download(traineeId, trainingProgramId)
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Not every step of this training is complete yet.'))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <div className="relative">
+      <Button size="sm" variant="secondary" onClick={handleDownload} disabled={downloading}>
+        {downloading ? 'Checking…' : '🎓 Certificate'}
+      </Button>
+      {error && <p className="absolute right-0 top-full z-10 mt-1 w-48 text-right text-xs text-red-600">{error}</p>}
+    </div>
   )
 }
 
@@ -388,32 +417,11 @@ function CompetencyGapsTab({ traineeId }: { traineeId: number }) {
     queryKey: ['trainees', traineeId, 'competency-gaps'],
     queryFn: () => competencyGapsApi.forTrainee(traineeId),
   })
-  const [downloading, setDownloading] = useState(false)
-
-  async function handleDownload() {
-    setDownloading(true)
-    try {
-      await certificatesApi.download(traineeId)
-    } finally {
-      setDownloading(false)
-    }
-  }
 
   if (isLoading) return <LoadingBlock />
 
   return (
     <div className="space-y-4">
-      {data && !data.has_gaps && (
-        <Card className="border-brand-200 bg-brand-50">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
-            <p className="text-sm font-semibold text-brand-800">🎉 All 5 chain levels complete — a Certificate of Completion has been issued.</p>
-            <Button size="sm" onClick={handleDownload} disabled={downloading}>
-              {downloading ? 'Preparing…' : '🎓 Download Certificate'}
-            </Button>
-          </div>
-        </Card>
-      )}
-
       <Card>
         <CardHeader
           title="Competency Gap Analysis"

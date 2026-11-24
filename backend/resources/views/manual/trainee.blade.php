@@ -128,24 +128,46 @@
         <li><b>2</b> "Cancel (emergency)" — changes a confirmed response back to declined.</li>
     </ol>
 
-    <h2>5. Downloading Your Certificate</h2>
-    <p>Once all five chain levels — Production, Post-Harvest, Processing, Marketing, and Consumption — are complete, a green banner appears on your Dashboard and Activity History page with a Download Certificate button. The certificate includes a QR code anyone can scan to verify it's genuine.</p>
+    <h2>5. Registering for a Training</h2>
+    <p>Under <b>Available Trainings</b>, browse every training your Project Officer has opened for registration and click Register if you're interested. You can withdraw later if your plans change.</p>
+
+    <div class="mock-screen" style="height: 90px;">
+        <div style="position: absolute; top: 14px; left: 14px; width: 420px;">
+            <table class="mock-table"><tr>
+                <td style="padding: 6px 0;">Basic Agricultural Extension Course</td>
+                <td style="width: 90px; text-align: right;"><span class="mock-button">Register</span></td>
+            </tr></table>
+        </div>
+        <div class="badge" style="top: 2px; left: 400px;">1</div>
+    </div>
+    <ol class="legend">
+        <li><b>1</b> Register your interest — your Project Officer sees how many signed up.</li>
+    </ol>
+
+    <h2>6. Scanning the Attendance QR Code</h2>
+    <p>On training day, your Project Officer displays a QR code. Scan it with your phone's own camera — no app needed — and it opens a page that records your attendance automatically once you're signed in.</p>
+
+    <h2>7. Submitting the Resource Person Evaluation</h2>
+    <p>After attending, click <b>Evaluate</b> next to that training on your Training History page to rate the topics covered and the resource person who delivered them. This is one of the steps needed before that training's certificate becomes available.</p>
+
+    <h2>8. Downloading a Training Certificate</h2>
+    <p>Certificates are earned per training, not all at once. Once you've registered, attended, passed its pre-test and post-test (if the officer set any), and submitted its Resource Person evaluation, a Certificate button appears next to that training on your Training History page. The certificate includes a QR code anyone can scan to verify it's genuine.</p>
 
     <div class="mock-screen" style="height: 90px; background: #f0fdf4;">
         <div style="position: absolute; top: 14px; left: 14px;">
-            <p style="margin:0; font-weight:bold; color:#166534;">You've completed every chain level!</p>
-            <p style="margin:2px 0 0 0; color:#166534; font-size:10px;">Your Certificate of Completion is ready.</p>
+            <p style="margin:0; font-weight:bold; color:#166534;">Hands-on Training on Abaca Technologies</p>
+            <p style="margin:2px 0 0 0; color:#166534; font-size:10px;">Registered, attended, tested, evaluated.</p>
         </div>
-        <div class="mock-button" style="position:absolute; top: 30px; left: 300px;">Download Certificate</div>
+        <div class="mock-button" style="position:absolute; top: 30px; left: 300px;">🎓 Certificate</div>
         <div class="badge" style="top: 14px; left: 400px;">1</div>
     </div>
     <ol class="legend">
-        <li><b>1</b> Click to download your certificate as a PDF, with a QR code for verification.</li>
+        <li><b>1</b> Click to download that training's certificate as a PDF, with a QR code for verification.</li>
     </ol>
 
-    <h2>6. Resetting a Forgotten Password</h2>
+    <h2>9. Resetting a Forgotten Password</h2>
     <p>On the sign-in page, click <b>Forgot password?</b>, enter the email on your account, and a reset link will be sent to it. Open the email, click the link, and choose a new password.</p>
 
-    <h2>7. Using the Help Bubble</h2>
+    <h2>10. Using the Help Bubble</h2>
     <p>A small <b>?</b> button stays in the bottom-right corner of every screen. Click it any time for quick tips about the page you're currently on, or to jump to this full manual.</p>
 </div>

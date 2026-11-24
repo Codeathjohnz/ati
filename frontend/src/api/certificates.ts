@@ -8,6 +8,7 @@ export interface CertificateChainLevel {
 export interface Certificate {
   id: number
   trainee_id: number
+  training_program_id: number | null
   certificate_number: string
   issued_at: string
   chain_levels: CertificateChainLevel[]
@@ -17,6 +18,7 @@ export interface VerificationResult {
   valid: boolean
   certificate_number?: string
   trainee_name?: string
+  training_program_name?: string
   issued_at?: string
   chain_levels?: CertificateChainLevel[]
 }
@@ -32,13 +34,21 @@ async function downloadBlob(path: string, filenameHint: string) {
 }
 
 export const certificatesApi = {
-  /** Trainee: their own certificate — 404 (via extractErrorMessage) until they've closed every chain level. */
-  mine: () => apiClient.get<Certificate>('/trainee/me/certificate').then((r) => r.data),
-  downloadMine: () => downloadBlob('/trainee/me/certificate/download', 'certificate.pdf'),
+  /**
+   * A trainee earns one certificate per training program, once they've
+   * registered, attended, passed its pre/post-tests (if published), and
+   * submitted its evaluation — not a single all-chain-levels certificate.
+   */
+  mine: (trainingProgramId: number) =>
+    apiClient.get<Certificate>(`/trainee/me/training-programs/${trainingProgramId}/certificate`).then((r) => r.data),
+  downloadMine: (trainingProgramId: number) =>
+    downloadBlob(`/trainee/me/training-programs/${trainingProgramId}/certificate/download`, 'certificate.pdf'),
 
-  /** Officer/Admin: a specific trainee's certificate. */
-  forTrainee: (traineeId: number) => apiClient.get<Certificate>(`/trainees/${traineeId}/certificate`).then((r) => r.data),
-  download: (traineeId: number) => downloadBlob(`/trainees/${traineeId}/certificate/download`, 'certificate.pdf'),
+  /** Officer/Admin: a specific trainee's certificate for a specific training program. */
+  forTrainee: (traineeId: number, trainingProgramId: number) =>
+    apiClient.get<Certificate>(`/trainees/${traineeId}/training-programs/${trainingProgramId}/certificate`).then((r) => r.data),
+  download: (traineeId: number, trainingProgramId: number) =>
+    downloadBlob(`/trainees/${traineeId}/training-programs/${trainingProgramId}/certificate/download`, 'certificate.pdf'),
 
   /** Public — no auth required; what the QR code on a certificate points at. */
   verify: (certificateNumber: string) =>

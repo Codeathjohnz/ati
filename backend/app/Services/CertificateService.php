@@ -4,61 +4,68 @@ namespace App\Services;
 
 use App\Models\Certificate;
 use App\Models\TraineeProfile;
+use App\Models\TraineeTestAttempt;
+use App\Models\TrainingHistory;
 use App\Models\TrainingProgram;
+use App\Models\TrainingProgramTest;
+use App\Models\TrainingRegistration;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Issues a Certificate of Completion the moment a trainee has no remaining
- * competency gaps — i.e. a training_history row for all 5 chain levels. A
- * trainee is only ever issued one certificate, ever (enforced by the
- * table's unique trainee_id); re-checking an already-issued trainee is a
- * no-op that just returns their existing certificate.
+ * Issues a Certificate of Completion for a specific training program once a
+ * trainee has completed every step of it: registered, attended, passed its
+ * pre-test and post-test (only the ones the officer actually published —
+ * a program with no test configured has nothing to pass), and submitted
+ * its Resource Person evaluation. A trainee can earn one certificate per
+ * program (enforced by the table's unique (trainee_id, training_program_id));
+ * re-checking an already-issued one is a no-op that returns the existing
+ * certificate.
  */
 class CertificateService
 {
-    public function __construct(private CompetencyGapAnalysisService $gaps) {}
-
-    /** Returns the trainee's certificate, issuing it now if they just became eligible — or null if they still have gaps. */
-    public function ensureIssued(TraineeProfile $trainee): ?Certificate
+    /** Returns the certificate for this trainee+program, issuing it now if they just completed every step — or null if not yet eligible. */
+    public function ensureIssued(TraineeProfile $trainee, TrainingProgram $program): ?Certificate
     {
-        $existing = Certificate::where('trainee_id', $trainee->id)->first();
+        $existing = Certificate::where('trainee_id', $trainee->id)
+            ->where('training_program_id', $program->id)
+            ->first();
         if ($existing) {
             return $existing;
         }
 
-        $summary = $this->gaps->summarize($trainee);
-        if ($summary['has_gaps']) {
+        if (! TrainingRegistration::where('trainee_id', $trainee->id)->where('training_program_id', $program->id)->exists()) {
             return null;
         }
 
-        return DB::transaction(function () use ($trainee) {
-            // Earliest attendance per chain level — the date each requirement
-            // was actually met. A single attendance can now cover several
-            // levels at once, so this walks every row (earliest first) and
-            // records each level's first appearance across all of them.
-            $earliestByLevel = [];
-            $trainee->trainingHistory()
-                ->orderBy('date_attended')
-                ->get(['chain_levels', 'date_attended'])
-                ->each(function ($h) use (&$earliestByLevel) {
-                    foreach ($h->chain_levels ?? [] as $level) {
-                        $earliestByLevel[$level] ??= $h->date_attended?->toDateString();
-                    }
-                });
+        $history = TrainingHistory::where('trainee_id', $trainee->id)->where('training_program_id', $program->id)->first();
+        if (! $history) {
+            return null;
+        }
 
-            $levelDates = collect(TrainingProgram::CHAIN_LEVELS)
-                ->filter(fn ($level) => isset($earliestByLevel[$level]))
-                ->map(fn ($level) => [
-                    'chain_level' => $level,
-                    'date_attended' => $earliestByLevel[$level],
-                ])
-                ->values();
+        if (! $this->passedPublishedTest($history, TrainingProgramTest::TYPE_PRE)) {
+            return null;
+        }
+
+        if (! $this->passedPublishedTest($history, TrainingProgramTest::TYPE_POST)) {
+            return null;
+        }
+
+        if (! $history->rpEvaluation) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($trainee, $program, $history) {
+            $chainLevels = collect($program->chain_levels)->map(fn ($level) => [
+                'chain_level' => $level,
+                'date_attended' => $history->date_attended?->toDateString(),
+            ])->values();
 
             $certificate = Certificate::create([
                 'trainee_id' => $trainee->id,
+                'training_program_id' => $program->id,
                 'certificate_number' => 'PENDING',
                 'issued_at' => now(),
-                'chain_levels' => $levelDates,
+                'chain_levels' => $chainLevels,
             ]);
 
             $certificate->update([
@@ -67,5 +74,27 @@ class CertificateService
 
             return $certificate;
         });
+    }
+
+    /**
+     * True if the program has no published test of this type (nothing to
+     * require), or the trainee has a passing attempt against the published
+     * one.
+     */
+    private function passedPublishedTest(TrainingHistory $history, string $type): bool
+    {
+        $test = TrainingProgramTest::where('training_program_id', $history->training_program_id)
+            ->where('type', $type)
+            ->where('is_published', true)
+            ->first();
+
+        if (! $test) {
+            return true;
+        }
+
+        return TraineeTestAttempt::where('training_history_id', $history->id)
+            ->where('training_program_test_id', $test->id)
+            ->where('passed', true)
+            ->exists();
     }
 }

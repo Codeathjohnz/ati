@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\TraineeProfile;
+use App\Models\TrainingProgram;
 use App\Services\CertificateService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\Builder\Builder;
@@ -21,32 +22,32 @@ class CertificateController extends Controller
         return $trainee;
     }
 
-    /** Trainee: their own certificate, issuing it now if they just became eligible. */
-    public function mine(Request $request, CertificateService $service)
+    /** Trainee: their own certificate for this program, issuing it now if they just became eligible. */
+    public function mine(Request $request, TrainingProgram $trainingProgram, CertificateService $service)
     {
-        return $this->respondWith($service->ensureIssued($this->resolveOwnTrainee($request)));
+        return $this->respondWith($service->ensureIssued($this->resolveOwnTrainee($request), $trainingProgram));
     }
 
-    /** Officer/Admin: a specific trainee's certificate. */
-    public function forTrainee(TraineeProfile $trainee, CertificateService $service)
+    /** Officer/Admin: a specific trainee's certificate for this program. */
+    public function forTrainee(TraineeProfile $trainee, TrainingProgram $trainingProgram, CertificateService $service)
     {
-        return $this->respondWith($service->ensureIssued($trainee));
+        return $this->respondWith($service->ensureIssued($trainee, $trainingProgram));
     }
 
-    public function downloadMine(Request $request, CertificateService $service)
+    public function downloadMine(Request $request, TrainingProgram $trainingProgram, CertificateService $service)
     {
-        return $this->downloadFor($this->resolveOwnTrainee($request), $service);
+        return $this->downloadFor($this->resolveOwnTrainee($request), $trainingProgram, $service);
     }
 
-    public function download(TraineeProfile $trainee, CertificateService $service)
+    public function download(TraineeProfile $trainee, TrainingProgram $trainingProgram, CertificateService $service)
     {
-        return $this->downloadFor($trainee, $service);
+        return $this->downloadFor($trainee, $trainingProgram, $service);
     }
 
     /** Public — no auth. What a QR scan (or anyone with the certificate number) lands on. */
     public function verify(string $certificateNumber)
     {
-        $certificate = Certificate::with('trainee')->where('certificate_number', $certificateNumber)->first();
+        $certificate = Certificate::with(['trainee', 'trainingProgram'])->where('certificate_number', $certificateNumber)->first();
 
         if (! $certificate) {
             return response()->json(['valid' => false], 404);
@@ -56,6 +57,7 @@ class CertificateController extends Controller
             'valid' => true,
             'certificate_number' => $certificate->certificate_number,
             'trainee_name' => $certificate->trainee->full_name,
+            'training_program_name' => $certificate->trainingProgram?->name,
             'issued_at' => $certificate->issued_at->toDateString(),
             'chain_levels' => $certificate->chain_levels,
         ]);
@@ -64,16 +66,16 @@ class CertificateController extends Controller
     private function respondWith(?Certificate $certificate)
     {
         if (! $certificate) {
-            return response()->json(['message' => 'Not all chain levels are complete yet.'], 404);
+            return response()->json(['message' => 'Not every step of this training is complete yet.'], 404);
         }
 
         return response()->json($certificate);
     }
 
-    private function downloadFor(TraineeProfile $trainee, CertificateService $service)
+    private function downloadFor(TraineeProfile $trainee, TrainingProgram $trainingProgram, CertificateService $service)
     {
-        $certificate = $service->ensureIssued($trainee);
-        abort_unless($certificate, 404, 'Not all chain levels are complete yet.');
+        $certificate = $service->ensureIssued($trainee, $trainingProgram);
+        abort_unless($certificate, 404, 'Not every step of this training is complete yet.');
 
         $verifyUrl = rtrim(config('app.frontend_url'), '/')."/verify/{$certificate->certificate_number}";
 
@@ -86,6 +88,7 @@ class CertificateController extends Controller
 
         $pdf = Pdf::loadView('certificates.certificate', [
             'trainee' => $trainee,
+            'trainingProgram' => $trainingProgram,
             'certificate' => $certificate,
             'qrDataUri' => $qr->getDataUri(),
             'verifyUrl' => $verifyUrl,

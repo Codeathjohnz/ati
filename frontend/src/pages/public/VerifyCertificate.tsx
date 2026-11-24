@@ -32,10 +32,8 @@ export default function VerifyCertificate() {
                 <Row label="Issued to" value={data.trainee_name} />
                 <Row label="Certificate No." value={data.certificate_number} />
                 <Row label="Issued" value={data.issued_at} />
-                <Row
-                  label="Program"
-                  value="Empowered & Bankable Farmer — all 5 agricultural value-chain levels completed"
-                />
+                <Row label="Training Program" value={data.training_program_name} />
+                <Row label="Recognition" value="Empowered & Bankable Farmer" />
               </div>
               {data.chain_levels && data.chain_levels.length > 0 && (
                 <div className="rounded-lg border border-slate-200 text-left text-sm">

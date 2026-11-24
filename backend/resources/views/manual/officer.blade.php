@@ -146,7 +146,7 @@
     </ol>
 
     <h2>6. Managing Training Programs</h2>
-    <p>Under <b>Training Programs</b>, create and edit programs: name, chain level, venue, dates, and status (upcoming, ongoing, completed).</p>
+    <p>Under <b>Training Programs</b>, create and edit programs: name, one or more chain levels it covers, resource person and topics (for the evaluation form), venue, dates, and status. Check "Open for trainee registration" to let trainees sign up, and add pre/post-tests from the Tests button.</p>
 
     <div class="mock-screen" style="height: 90px;">
         <div style="position: absolute; top: 14px; left: 14px; width: 420px;">
@@ -159,27 +159,32 @@
     </div>
     <ol class="legend">
         <li><b>1</b> Program name.</li>
-        <li><b>2</b> Chain level and venue/dates.</li>
+        <li><b>2</b> Chain level(s) and venue/dates.</li>
     </ol>
 
-    <h2>7. Competency Gaps &amp; Issuing Certificates</h2>
-    <p>The <b>Competency Gaps</b> tab on a trainee's profile shows which of the five chain levels are still incomplete. Once all five are done, a certificate banner appears with a download button — no manual certificate-issuing step needed, it's automatic.</p>
+    <h2>7. Registrants &amp; QR Attendance</h2>
+    <p>Each posted program shows a registrant count on the Training Programs list — click it to see who signed up. Click <b>Attendance QR</b> to generate a scannable code for check-in day; trainees scan it with their own phone camera to record their attendance automatically, no extra app needed.</p>
 
-    <div class="mock-screen" style="height: 100px; background: #f0fdf4;">
-        <div style="position: absolute; top: 14px; left: 14px;">
-            <p style="margin:0; font-weight:bold; color:#166534;">All chain levels complete — certificate ready</p>
+    <h2>8. Competency Gaps &amp; Issuing Certificates</h2>
+    <p>The <b>Competency Gaps</b> tab on a trainee's profile still shows chain-level progress, but certificates are no longer gated by it. A certificate becomes available per training, once a trainee has registered, attended, passed its tests (if any were published), and submitted its evaluation — click the Certificate button next to that training on their Training History tab.</p>
+
+    <div class="mock-screen" style="height: 90px;">
+        <div style="position: absolute; top: 14px; left: 14px; width: 420px;">
+            <table class="mock-table"><tr>
+                <td style="padding: 6px 0;">Rice Guarding Training &middot; Post-Harvest</td>
+                <td style="width: 90px; text-align: right;"><span class="mock-button">🎓 Certificate</span></td>
+            </tr></table>
         </div>
-        <div class="mock-button" style="position:absolute; top: 34px; left: 14px;">Download Certificate</div>
-        <div class="badge" style="top: 0px; left: 300px;">1</div>
+        <div class="badge" style="top: 2px; left: 400px;">1</div>
     </div>
     <ol class="legend">
-        <li><b>1</b> Download the trainee's certificate as a PDF (includes a QR code for verification).</li>
+        <li><b>1</b> Download that training's certificate as a PDF (includes a QR code for verification) — only works once every step is complete.</li>
     </ol>
 
-    <h2>8. Confirming Upcoming Training Participants</h2>
+    <h2>9. Confirming Upcoming Training Participants</h2>
     <p>Under <b>Upcoming Confirmations</b>, see who has confirmed, declined, or not yet responded for each scheduled training.</p>
 
-    <h2>9. Viewing, Printing &amp; Downloading Reports</h2>
+    <h2>10. Viewing, Printing &amp; Downloading Reports</h2>
     <p>Under <b>Reports</b>, each report card has a <b>View / Print</b> button (opens a PDF in a new tab — use your browser's own print/download icons) and a <b>Download CSV</b> button for raw data.</p>
 
     <div class="mock-screen" style="height: 90px;">

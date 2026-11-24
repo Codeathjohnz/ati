@@ -13,17 +13,22 @@ const TIPS: Record<string, string[]> = {
   ],
   '/trainee/activity-history': [
     'This page shows your full record: documents, confirmations, and competency gaps in one place.',
-    'Once every chain level is complete, a Certificate button appears here too.',
+  ],
+  '/trainee/training-history': [
+    'A Certificate button appears next to each training once you\'ve registered, attended, passed its tests, and submitted its evaluation.',
+  ],
+  '/trainee/available-trainings': [
+    'Browse trainings your Project Officer has opened for registration and register your interest.',
   ],
   '/trainee': [
     'Your stat tiles summarize trainings attended, document compliance, and competency gaps at a glance.',
-    'A green banner appears here the moment you complete every chain level, with your certificate ready to download.',
   ],
   '/officer/trainees': [
     'Click "+ Add Trainee" to register someone new, or click any row to open their full profile.',
   ],
   '/officer/training-programs': [
-    'Each program needs a chain level — that\'s what links it into a trainee\'s competency gap tracking.',
+    'A program can cover more than one chain level — pick every level it actually teaches.',
+    'Open it for trainee registration, and generate an Attendance QR for check-in day.',
   ],
   '/officer/competency-gaps': [
     'This shows every trainee\'s progress across the five chain levels at a glance.',

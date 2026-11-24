@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { traineeSelfApi } from '../../api/traineeSelf'
+import { certificatesApi } from '../../api/certificates'
 import { extractErrorMessage } from '../../api/client'
 import { Badge, Button, Card, CardHeader, ErrorBlock, LoadingBlock } from '../../components/ui'
 
@@ -17,7 +19,10 @@ export default function MyTrainingHistory() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">My Training History</h1>
-        <p className="text-sm text-slate-500">Every training program you've attended, and the chain level it covered.</p>
+        <p className="text-sm text-slate-500">
+          Every training program you've attended. Once you've registered, attended, passed its tests, and
+          submitted its evaluation, a certificate becomes available.
+        </p>
       </div>
 
       <Card>
@@ -34,6 +39,7 @@ export default function MyTrainingHistory() {
                 <Link to={`/trainee/training-history/${h.id}/evaluation`}>
                   <Button size="sm" variant="secondary">Evaluate</Button>
                 </Link>
+                <CertificateButton trainingProgramId={h.training_program_id} />
               </div>
             </div>
           ))}
@@ -42,6 +48,32 @@ export default function MyTrainingHistory() {
           )}
         </div>
       </Card>
+    </div>
+  )
+}
+
+function CertificateButton({ trainingProgramId }: { trainingProgramId: number }) {
+  const [downloading, setDownloading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDownload() {
+    setDownloading(true)
+    setError(null)
+    try {
+      await certificatesApi.downloadMine(trainingProgramId)
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Not every step of this training is complete yet.'))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <div className="relative">
+      <Button size="sm" onClick={handleDownload} disabled={downloading}>
+        {downloading ? 'Checking…' : '🎓 Certificate'}
+      </Button>
+      {error && <p className="absolute right-0 top-full mt-1 w-48 text-right text-xs text-red-600">{error}</p>}
     </div>
   )
 }

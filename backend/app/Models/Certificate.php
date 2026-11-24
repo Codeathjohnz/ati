@@ -12,6 +12,7 @@ class Certificate extends Model
 
     protected $fillable = [
         'trainee_id',
+        'training_program_id',
         'certificate_number',
         'issued_at',
         'chain_levels',
@@ -25,5 +26,10 @@ class Certificate extends Model
     public function trainee(): BelongsTo
     {
         return $this->belongsTo(TraineeProfile::class, 'trainee_id');
+    }
+
+    public function trainingProgram(): BelongsTo
+    {
+        return $this->belongsTo(TrainingProgram::class);
     }
 }
