@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { extractErrorMessage } from '../../api/client'
 import { Button, ErrorBlock } from '../../components/ui'
@@ -33,6 +33,11 @@ const PARTICLES = [
 
 export default function Login() {
   const { login, loginWithGoogle, isAuthenticated, isLoading } = useAuth()
+  const [searchParams] = useSearchParams()
+  const next = searchParams.get('next')
+  // Only ever redirect to a same-site relative path — never let a query
+  // param send someone to an arbitrary external URL after logging in.
+  const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null
   const [username, setUsername] = useState(() => localStorage.getItem(REMEMBER_KEY) ?? '')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(() => Boolean(localStorage.getItem(REMEMBER_KEY)))
@@ -46,7 +51,7 @@ export default function Login() {
     return () => clearInterval(timer)
   }, [])
 
-  if (!isLoading && isAuthenticated) return <Navigate to="/" replace />
+  if (!isLoading && isAuthenticated) return <Navigate to={safeNext ?? '/'} replace />
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()

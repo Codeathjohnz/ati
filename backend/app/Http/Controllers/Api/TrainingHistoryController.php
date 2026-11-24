@@ -6,12 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\TrainingHistoryRequest;
 use App\Http\Resources\TrainingHistoryResource;
 use App\Models\ActivityLog;
-use App\Models\RequiredDocument;
 use App\Models\TraineeProfile;
 use App\Models\TrainingHistory;
 use App\Models\TrainingProgram;
+use App\Services\AttendanceService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class TrainingHistoryController extends Controller
 {
@@ -28,31 +27,17 @@ class TrainingHistoryController extends Controller
      * active required document so the Document Status Tracker has something
      * to track from day one.
      */
-    public function store(TrainingHistoryRequest $request, TraineeProfile $trainee)
+    public function store(TrainingHistoryRequest $request, TraineeProfile $trainee, AttendanceService $attendance)
     {
         $program = TrainingProgram::findOrFail($request->validated('training_program_id'));
 
-        $history = DB::transaction(function () use ($request, $trainee, $program) {
-            $history = TrainingHistory::create([
-                'trainee_id' => $trainee->id,
-                'training_program_id' => $program->id,
-                'chain_levels' => $program->chain_levels,
-                'date_attended' => $request->validated('date_attended'),
-                'remarks' => $request->validated('remarks'),
-                'created_by' => $request->user()->id,
-            ]);
-
-            $requiredDocuments = RequiredDocument::where('is_active', true)->get();
-            foreach ($requiredDocuments as $doc) {
-                $history->documentSubmissions()->create([
-                    'trainee_id' => $trainee->id,
-                    'required_document_id' => $doc->id,
-                    'submitted' => false,
-                ]);
-            }
-
-            return $history;
-        });
+        $history = $attendance->record(
+            $trainee,
+            $program,
+            $request->validated('date_attended'),
+            $request->validated('remarks'),
+            $request->user()->id,
+        );
 
         ActivityLog::record($request->user()->id, 'training_history.created', 'TraineeProfile', $trainee->id, "Recorded attendance of {$trainee->full_name} in \"{$program->name}\".");
 

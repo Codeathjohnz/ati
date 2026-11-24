@@ -9,6 +9,7 @@ import Login from '../pages/auth/Login'
 import VerifyCertificate from '../pages/public/VerifyCertificate'
 import ForgotPassword from '../pages/public/ForgotPassword'
 import ResetPassword from '../pages/public/ResetPassword'
+import AttendanceScan from '../pages/public/AttendanceScan'
 
 import Dashboard from '../pages/shared/Dashboard'
 import Reports from '../pages/shared/Reports'
@@ -42,6 +43,7 @@ export default function AppRouter() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify/:certificateNumber" element={<VerifyCertificate />} />
+        <Route path="/attend" element={<AttendanceScan />} />
         <Route path="/" element={<RoleRedirect />} />
 
         {/* Administrator Module */}

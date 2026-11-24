@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { trainingProgramsApi, type TrainingProgramPayload } from '../../api/trainingPrograms'
 import { trainingProgramTestsApi } from '../../api/tests'
 import { trainingRegistrationsApi } from '../../api/trainingRegistrations'
+import { attendanceApi } from '../../api/attendance'
 import { metaApi } from '../../api/meta'
 import { extractErrorMessage } from '../../api/client'
 import type { TestQuestion, TestType, TrainingProgram } from '../../types'
@@ -26,6 +27,7 @@ export default function TrainingPrograms() {
   const [error, setError] = useState<string | null>(null)
   const [testsProgram, setTestsProgram] = useState<TrainingProgram | null>(null)
   const [registrantsProgram, setRegistrantsProgram] = useState<TrainingProgram | null>(null)
+  const [qrProgram, setQrProgram] = useState<TrainingProgram | null>(null)
 
   const { data: meta } = useQuery({ queryKey: ['meta'], queryFn: metaApi.get })
   const { data, isLoading } = useQuery({
@@ -115,6 +117,7 @@ export default function TrainingPrograms() {
                       <td className="px-5 py-3"><Badge tone={statusTone[p.status]}>{p.status}</Badge></td>
                       <td className="px-5 py-3 text-right">
                         <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="secondary" onClick={() => setQrProgram(p)}>Attendance QR</Button>
                           <Button size="sm" variant="secondary" onClick={() => setTestsProgram(p)}>Tests</Button>
                           <Button size="sm" variant="secondary" onClick={() => openEdit(p)}>Edit</Button>
                           <Button
@@ -225,6 +228,34 @@ export default function TrainingPrograms() {
       >
         {registrantsProgram && <RegistrantsList trainingProgramId={registrantsProgram.id} />}
       </Modal>
+
+      <Modal
+        open={qrProgram !== null}
+        onClose={() => setQrProgram(null)}
+        title={qrProgram ? `Attendance QR — ${qrProgram.name}` : 'Attendance QR'}
+      >
+        {qrProgram && <AttendanceQrPanel trainingProgramId={qrProgram.id} />}
+      </Modal>
+    </div>
+  )
+}
+
+function AttendanceQrPanel({ trainingProgramId }: { trainingProgramId: number }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['training-programs', trainingProgramId, 'attendance-qr'],
+    queryFn: () => attendanceApi.generateQr(trainingProgramId),
+  })
+
+  if (isLoading) return <LoadingBlock />
+  if (error || !data) return <ErrorBlock message={extractErrorMessage(error, 'Could not generate a QR code.')} />
+
+  return (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <img src={data.qr_data_uri} alt="Attendance QR code" className="h-56 w-56" />
+      <p className="text-sm text-slate-600">
+        Trainees scan this with their phone camera to check in automatically — no app needed.
+      </p>
+      <p className="text-xs text-slate-400">Expires {new Date(data.expires_at).toLocaleString()}</p>
     </div>
   )
 }

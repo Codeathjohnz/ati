@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\SettingController;
 use App\Http\Controllers\Api\Admin\StorageMonitorController;
 use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\CompetencyGapController;
@@ -102,6 +103,7 @@ Route::prefix('v1')->group(function () {
             Route::post('confirmations/{confirmation}/respond', [TrainingConfirmationController::class, 'respond']);
 
             Route::get('training-programs/{trainingProgram}/registrations', [TrainingRegistrationController::class, 'forTrainingProgram']);
+            Route::get('training-programs/{trainingProgram}/attendance-qr', [AttendanceController::class, 'generateQr']);
 
             Route::get('reports/attendance', [ReportController::class, 'attendance']);
             Route::get('reports/attendance/pdf', [ReportController::class, 'attendancePdf']);
@@ -124,6 +126,7 @@ Route::prefix('v1')->group(function () {
             Route::get('me/training-programs-posted', [TrainingRegistrationController::class, 'posted']);
             Route::post('me/training-programs/{trainingProgram}/register', [TrainingRegistrationController::class, 'register']);
             Route::delete('me/training-programs/{trainingProgram}/register', [TrainingRegistrationController::class, 'withdraw']);
+            Route::post('me/attend', [AttendanceController::class, 'scan']);
             Route::get('me/activity-history', [TraineeSelfController::class, 'activityHistory']);
 
             Route::post('me/training-history/{trainingHistory}/documents/{requiredDocumentId}/upload', [DocumentSubmissionController::class, 'uploadAsTrainee']);
