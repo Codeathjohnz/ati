@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcludesHistoricalByDefault;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TrainingHistory extends Model
 {
-    use HasFactory;
+    use HasFactory, ExcludesHistoricalByDefault;
 
     protected $table = 'training_history';
 
@@ -21,11 +22,13 @@ class TrainingHistory extends Model
         'date_attended',
         'remarks',
         'created_by',
+        'is_historical',
     ];
 
     protected $casts = [
         'chain_levels' => 'array',
         'date_attended' => 'date',
+        'is_historical' => 'boolean',
     ];
 
     public function trainee(): BelongsTo

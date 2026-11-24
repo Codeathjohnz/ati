@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcludesHistoricalByDefault;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TraineeProfile extends Model
 {
-    use HasFactory;
+    use HasFactory, ExcludesHistoricalByDefault;
 
     public const EDUCATIONAL_LEVELS = [
         'Elementary', 'High School', 'Vocational', 'College', 'Post Graduate',
@@ -36,10 +37,12 @@ class TraineeProfile extends Model
         'organization_affiliation',
         'occupation',
         'created_by',
+        'is_historical',
     ];
 
     protected $casts = [
         'birthdate' => 'date',
+        'is_historical' => 'boolean',
     ];
 
     protected $appends = ['full_name', 'age'];

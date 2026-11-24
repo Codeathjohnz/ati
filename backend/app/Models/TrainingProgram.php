@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcludesHistoricalByDefault;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingProgram extends Model
 {
-    use HasFactory;
+    use HasFactory, ExcludesHistoricalByDefault;
 
     public const CHAIN_LEVELS = [
         'Production', 'Post-Harvest', 'Processing', 'Marketing', 'Consumption',
@@ -29,6 +30,7 @@ class TrainingProgram extends Model
         'status',
         'is_posted',
         'created_by',
+        'is_historical',
     ];
 
     protected $casts = [
@@ -37,6 +39,7 @@ class TrainingProgram extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'is_posted' => 'boolean',
+        'is_historical' => 'boolean',
     ];
 
     public function creator(): BelongsTo
